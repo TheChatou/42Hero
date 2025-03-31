@@ -6,13 +6,13 @@
 #    By: gburtin <gburtin@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/03/03 10:15:21 by gburtin           #+#    #+#              #
-#    Updated: 2025/03/31 16:09:48 by gburtin          ###   ########.fr        #
+#    Updated: 2025/03/31 17:23:37 by gburtin          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = main
 
-SRC = main.c twi.c
+SRC = main.c
 BIN = $(NAME).bin
 HEX = $(NAME).hex
 
