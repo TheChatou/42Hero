@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 16:47:16 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/01 10:14:12 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/01 13:48:17 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,14 @@
 // Fonction pour jouer une note
 void play_note(uint16_t frequency, uint16_t duration_ms)
 {
-    uint16_t period = (1000000 / frequency);
-    uint16_t cycles = duration_ms / 100;
+    if (frequency == 0)
+    {
+        _delay_loop_2(duration_ms / 2); // Pause si la note est 0
+        return;
+    }
+    
+    uint16_t period = (1000000 / frequency) * 5;
+    uint16_t cycles = duration_ms;
 
     for (uint16_t i = 0; i < cycles; i++)
     {
@@ -67,11 +73,11 @@ int main(void)
     //     NOTE_D5, NOTE_F5, NOTE_A5, NOTE_G5, NOTE_F5, NOTE_E5, NOTE_C5, NOTE_E5, NOTE_D5, NOTE_C5, NOTE_B4, NOTE_B4
     // };
 
-    uint16_t notes[] = { 
-        NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_B4, 
-        NOTE_C5, NOTE_D5, NOTE_E5, NOTE_F5, NOTE_G5, NOTE_A5, NOTE_B5, 
-        NOTE_C6
-    };
+    // uint16_t notes[] = { 
+    //     NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_B4, 
+    //     NOTE_C5, NOTE_D5, NOTE_E5, NOTE_F5, NOTE_G5, NOTE_A5, NOTE_B5, 
+    //     NOTE_C6
+    // };
     
     // uint16_t notes[] = { 
     //     NOTE_E5, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_C5, NOTE_B4, NOTE_A4, NOTE_A4, 
@@ -79,17 +85,63 @@ int main(void)
     //     NOTE_D5, NOTE_F5, NOTE_A5, NOTE_G5, NOTE_F5, NOTE_E5, NOTE_C5, NOTE_E5, NOTE_D5, NOTE_C5, NOTE_B4, NOTE_B4
     // };
 
-    uint16_t durations[] = { 
-        2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 
-        2000, 2000, 2000, 2000, 2000, 2000, 2000 
+    // uint16_t durations[] = { 
+    //     2000, 2000, 2000, 2000, 2000, 2000, 2000, 2000, 
+    //     2000, 2000, 2000, 2000, 2000, 2000, 2000 
+    // };
+
+// // Super Mario
+//     uint16_t notes[] = {
+//         NOTE_E5, NOTE_E5, 0, NOTE_E5, 0, NOTE_C5, NOTE_E5, 0,
+//         NOTE_G5, 0, 0, 0, NOTE_G4, 0, 0, 0,
+//         NOTE_C5, 0, 0, NOTE_G4, 0, 0, NOTE_E4, 0,
+//         0, NOTE_A4, 0, NOTE_B4, 0, NOTE_B4, NOTE_A4, 0,
+//         NOTE_G4, NOTE_E5, NOTE_G5, NOTE_A5, 0, NOTE_F5, NOTE_G5, 0,
+//         NOTE_E5, NOTE_C5, NOTE_D5, NOTE_B4, 0, 0, NOTE_C5, 0,
+//         0, NOTE_G4, 0, NOTE_E4, 0, NOTE_A4, 0, NOTE_B4,
+//         0, NOTE_A4, NOTE_G4, 0, NOTE_E5, 0, NOTE_G5, NOTE_A5,
+//         0, NOTE_F5, NOTE_G5, 0, NOTE_E5, NOTE_C5, NOTE_D5, NOTE_B4
+//     };
+
+//     uint16_t durations[] = {
+//         150, 150, 150, 150, 150, 150, 150, 150,
+//         150, 300, 150, 300, 150, 300, 150, 300,
+//         150, 300, 150, 150, 150, 150, 150, 150,
+//         150, 150, 150, 150, 150, 150, 150, 150,
+//         150, 150, 150, 150, 150, 150, 150, 150,
+//         150, 150, 150, 150, 150, 300, 150, 300,
+//         150, 300, 150, 150, 150, 150, 150, 150,
+//         150, 150, 150, 150, 150, 150, 150, 150,
+//         150, 150, 150, 150, 150, 150, 150, 150
+//     };
+
+// Tetris
+    uint16_t notes[] = {
+        NOTE_E4, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_C5, NOTE_B4,
+        NOTE_A4, NOTE_A4, NOTE_C5, NOTE_E5, NOTE_D5, NOTE_C5,
+        NOTE_B4, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_C5, NOTE_A4,
+        NOTE_A4, NOTE_C5, NOTE_E5, NOTE_A5, NOTE_A5, NOTE_A5,
+        NOTE_G5, NOTE_F5, NOTE_E5, NOTE_C5, NOTE_E5, NOTE_D5,
+        NOTE_C5, NOTE_B4, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_E5,
+        NOTE_C5, NOTE_A4, NOTE_A4, NOTE_A4
     };
 
+    uint16_t durations[] = {
+        300, 150, 300, 150, 300, 300,
+        300, 150, 300, 300, 150, 300,
+        300, 150, 300, 300, 300, 300,
+        300, 150, 300, 300, 150, 300,
+        300, 150, 300, 300, 150, 300,
+        300, 150, 300, 300, 150, 300,
+        300, 150, 300, 300
+    };
+    
     while (1)
     {
-        for (size_t i = 0; i < 15; i++)
+        for (size_t i = 0; i < sizeof(notes) / sizeof(notes[0]); i++)
         {
-            play_note(notes[i], durations[i]);
-            _delay_ms(400);
+            play_note(notes[i], durations[i] / 2);
+            _delay_ms(50);
         }
         _delay_ms(200);
     }
