@@ -1,1 +1,1 @@
-objdep/main.o: main.c head.h tetris.c
+objdep/main.o: main.c head.h

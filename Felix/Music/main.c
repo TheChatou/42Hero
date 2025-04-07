@@ -3,67 +3,19 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 16:47:16 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/05 15:15:32 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/07 15:50:23 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "head.h"
-#include "tetris.c"
 
 #define SPEAKER_PIN PB1 // Pin D9 est PB1 sur l'Arduino Uno
 
-// Fréquences des notes
-#define N0  0
-#define C3  131
-#define c3  139
-#define D3  147
-#define d3  156
-#define E3  165
-#define F3  175
-#define f3  185
-#define G3  196
-#define g3  208
-#define A3  220
-#define a3  233
-#define B3  247
-#define C4  261
-#define c4  277
-#define D4  294
-#define d4  311
-#define E4  329
-#define F4  349
-#define f4  370
-#define G4  392
-#define g4  415
-#define A4  440
-#define a4  466
-#define B4  493
-#define C5  523
-#define c5  554
-#define D5  587
-#define d5  622
-#define E5  659
-#define F5  698
-#define f5  740
-#define G5  784
-#define g5  831
-#define A5  880
-#define a5  932
-#define B5  987
-#define C6  1046
-
-#define T_1_8  125
-#define T_1_16 62
-#define T_1_4  250
-#define T_1_2  500
-#define T_3_4  750
-#define T_1__  1000
-
 // Correspondance entre noms de notes et fréquences
-int get_frequency(char* note)
+int get_frequency(const char* note)
 {
     if (strcmp(note, "C3") == 0) return C3;
     if (strcmp(note, "c3") == 0) return c3;
@@ -103,56 +55,54 @@ int get_frequency(char* note)
     if (strcmp(note, "B5") == 0) return B5;
     if (strcmp(note, "C6") == 0) return C6;
     if (strcmp(note, "N0") == 0) return N0;
+    if (strcmp(note, "--") == 0) return N0; // Silence
     
     return 0;
 }
 
+void    print_t_part(t_part *p)
+{
+    for (int i = 0; i < TEMPS_MAX; i++)
+    {
+        uart_print_int(i + 1);
+        uart_printstr(" - ");
+        uart_print_ui16(p->notes[i].frequency);
+        uart_printstr(" Hz, Durée: ");
+        uart_print_ui16(p->notes[i].duration);
+        uart_printstr(" ms\r\n");
+    }
+}
 
 // Fonction pour parser les données de la partition depuis une chaîne
-void parse_partition_from_string(const char* data, Partition* p)
+void parse_partition_from_string(const char** data, t_part *p)
 {
     int i = 0;
-
-    // Copie des données pour pouvoir les manipuler avec strtok
-    char buffer[strlen(data) + 1];
-    strcpy(buffer, data);
-
-    // Récupère chaque ligne
-    char* line_ptr = strtok(buffer, "\n");
-    line_ptr = strtok(NULL, "\n"); // Ignore la première ligne (l'en-tête)
-
-    while (line_ptr && i < NOTES_MAX)
+        
+    while (i < NOTES_MAX)
     {
-        char note[4];
-        sscanf(line_ptr, "%3s |", note); // Récupère "E5", "f5", etc.
+        char note[3] = { data[i][0], data[i][1], '\0' };
         int freq = get_frequency(note);
 
-        uart_printstr("___Note: ");
-        uart_printstr(note);
-        uart_printstr("___\r\n");
-        char* token = strtok(line_ptr + 4, "|"); // Saute "E5 |"
-        int j = 0;
-
-        while (token && j < TEMPS_MAX)
+        int j = 4;
+        int t = 0;
+        while (data[i][j] != '\0')
         {
-            // Si un "X" est trouvé, la note est jouée à ce moment-là
-            if (strchr(token, 'X') != NULL)
+            if (data[i][j] == '|')
             {
-                p->notes[i][j].frequency = freq;    // Assigne la fréquence de la note
-                p->notes[i][j].duration = T_1_4;   // Durée de la note (1/4 de temps)
+                j++;
+                continue;
             }
-            else
+            else if (data[i][j] == 'X')
             {
-                p->notes[i][j].frequency = 0;      // Pas de note jouée
-                p->notes[i][j].duration = T_1_4;   // Durée par défaut
+                p->notes[t].duration = T_1_4;
+                p->notes[t].frequency = freq;
             }
-
-            token = strtok(NULL, "|"); // Récupère le prochain "temps"
+            t++;
             j++;
         }
-        line_ptr = strtok(NULL, "\n"); // Passe à la ligne suivante
         i++;
     }
+    // print_t_part(p);
 }
 
 // Fonction pour jouer une note
@@ -170,9 +120,7 @@ void play_note(uint16_t frequency, uint16_t duration_ms)
 
     for (uint16_t i = 0; i < cycles; i++)
     {
-        PORTB |= (1 << SPEAKER_PIN);
-        _delay_loop_2(period);
-        PORTB &= ~(1 << SPEAKER_PIN);
+        PORTB ^= (1 << SPEAKER_PIN);
         _delay_loop_2(period);
     }
 }
@@ -184,38 +132,48 @@ int main(void)
 
     uart_init();
 
-    uart_printstr("HELLO\r\n");
-    uart_print_ui16(TEMPS_MAX);
-
+// const char *tetris_data[] = {
+//     "E5 |----|----|----|----|----|----|----|----|----|--X-|----|----|----|----|----|----|",
+//     "f5 |----|----|----|----|----|----|----|----|---X|----|----|----|----|----|----|----|",
+//     "D5 |----|----|----|----|----|----|----|----|----|----|X---|----|----|----|----|----|",
+//     "C5 |----|----|----|----|----|----|----|----|----|----|--X-|----|----|----|----|----|",
+//     "c5 |X---|----|----|X---|----|--X-|----|----|----|----|----|----|--X-|----|X---|----|",
+//     "B4 |----|XX--|----|--X-|----|X---|----|----|-X--|----|----|----|X---|----|----|----|",
+//     "A4 |---X|--X-|---X|---X|---X|----|X---|----|----|----|---X|---X|----|X---|----|----|",
+//     "g4 |--X-|---X|----|----|X-X-|----|----|----|----|----|----|X-X-|----|----|X---|----|",
+//     "f4 |----|----|X-X-|----|----|----|--X-|X---|----|----|----|----|----|--X-|X---|XXXX|" };
+//     //   1    5    9    13   17   21   25   29   33   37   41   45   49   53   57   61   
     
+
+const char *tetris_data[] = {
+    "A5 |----|----|----|----|----|----|----|----|----|X---|----|----|----|----|----|----|----|",
+    "G5 |----|----|----|----|----|----|----|----|----|--X-|----|----|----|----|----|----|----|",
+    "F5 |----|----|----|----|----|----|----|----|---X|---X|----|----|----|----|----|----|----|",
+    "E5 |X---|----|----|X---|----|--X-|----|----|----|----|X---|X---|----|--X-|----|----|----|",
+    "D5 |----|X---|----|--X-|----|X---|----|----|-X--|----|----|--X-|----|X---|----|----|----|",
+    "C5 |---X|--X-|---X|---X|---X|----|X---|----|----|----|---X|---X|---X|----|X---|----|----|",
+    "B4 |--X-|---X|----|----|X---|----|----|----|----|----|----|----|X-X-|----|----|----|----|",
+    "A4 |----|----|X-X-|----|----|----|--X-|X---|----|----|----|----|----|----|----|X---|X---|" };
+    //   1    5    9    13   17   21   25   29   33   37   41   45   49   53   57   61   65
+
+    t_part p = {0}; // Initialisation de la partition
+    
+    
+    uart_printstr("Lecture de la partition...\r\n");
     // Partition lue depuis la chaîne de caractères
-    Partition p = {0};
+    uart_printstr("before parse\r\n");
     parse_partition_from_string(tetris_data, &p);
 
     uart_printstr("Partition lue:\r\n");
-    // Lecture et exécution de la partition
-    for (int i = 0; i < NOTES_MAX; i++)
+    while (1)
     {
-        for (int j = 0; j < TEMPS_MAX; j++)
-        {
-            // uart_print_ui16(i);
-            // uart_printstr(" , ");
-            // uart_print_ui16(j);
-            // uart_printstr("\r\n Note: ");
-            // uart_print_ui16(p.notes[i][j].frequency);
-            if (p.notes[i][j].frequency != 0)
-            {
-                uart_printstr("Note: ");
-                uart_print_ui16(p.notes[i][j].frequency);
-                uart_printstr(" Hz, Durée: ");
-                uart_print_ui16(p.notes[i][j].duration);
-                uart_printstr(" ms\n");
-                
-                // Joue la note si la fréquence est différente de 0
-                play_note(p.notes[i][j].frequency, p.notes[i][j].duration);
-                _delay_ms(100);
-            }
+        // Lecture et exécution de la partition
+        for (int t = 0; t < TEMPS_MAX; t++)
+        {            
+            play_note(p.notes[t].frequency / 2, p.notes[t].duration * 2);
+            // _delay_ms(50);
         }
+        _delay_ms(1000);
     }
 
     return 0;

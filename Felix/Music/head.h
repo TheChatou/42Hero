@@ -3,16 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   head.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/05 15:08:40 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/07 15:42:06 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
@@ -42,7 +41,55 @@ typedef volatile uint32_t   vui32;
 
 
 #define NOTES_MAX 9
-#define TEMPS_MAX 4
+#define TEMPS_MAX 68
+
+// Fréquences des notes
+#define N0  0
+#define C3  131
+#define c3  139
+#define D3  147
+#define d3  156
+#define E3  165
+#define F3  175
+#define f3  185
+#define G3  196
+#define g3  208
+#define A3  220
+#define a3  233
+#define B3  247
+#define C4  261
+#define c4  277
+#define D4  294
+#define d4  311
+#define E4  329
+#define F4  349
+#define f4  370
+#define G4  392
+#define g4  415
+#define A4  440
+#define a4  466
+#define B4  493
+#define C5  523
+#define c5  554
+#define D5  587
+#define d5  622
+#define E5  659
+#define F5  698
+#define f5  740
+#define G5  784
+#define g5  831
+#define A5  880
+#define a5  932
+#define B5  987
+#define C6  1046
+
+#define T_1_4   150
+#define T_1_2   300
+#define T_3_4   450
+#define T_1_8   75
+#define T_1_16  37
+#define T_1_32  18
+#define T_1     600
 
 
 // STRUCTS //
@@ -68,16 +115,16 @@ typedef enum e_onoff
     ON = 1
 }           e_onoff;
 
-typedef struct Note
+typedef struct s_note
 {
     int     frequency;                          // Fréquence en Hz
     int     duration;                           // Durée en millisecondes
-}           Note;
+}           t_note;
 
-typedef struct
+typedef struct s_part
 {
-    Note    notes[NOTES_MAX][TEMPS_MAX];        // Tableau de notes sur une timeline
-}           Partition;
+    t_note    notes[TEMPS_MAX];        // Tableau de notes sur une timeline
+}           t_part;
 
 // MY_LIB_EMBEDDED FUNCTIONS // libebdd.c
 void	clear_n_set(vui8 *port, ui8 bit);
