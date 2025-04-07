@@ -6,7 +6,7 @@
 /*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/07 15:42:06 by fcoullou         ###   ########.fr       */
+/*   Updated: 2025/04/07 16:54:09 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,6 @@ void	reset_registre(vui8 *reg);
 char	change_case(char c);
 ui8		ishex(char c);
 ui8     hex(ui8 c1, ui8 c2);
-ui8     rounded(float f);
 ui8	    ft_strlen(char *str);
 void	init_led_D5();
 
@@ -158,6 +157,7 @@ void    tc1_mode(ui8 wgm13, ui8 wgm12, ui8 wgm11, ui8 wgm10);
 void    tc1_compare_match(ui8 com1A1, ui8 com1A0, ui8 com1B1, ui8 com1B0);
 
 // USART FUNCTIONS // usart.c
+ui8     rounded(float f);
 void    uart_init();
 char    uart_rx();
 void    uart_tx(char c);

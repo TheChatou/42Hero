@@ -6,13 +6,17 @@
 /*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 16:47:16 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/07 17:27:14 by fcoullou         ###   ########.fr       */
+/*   Updated: 2025/04/07 17:25:05 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "head.h"
 
 #define SPEAKER_PIN PB1 // Pin D9 est PB1 sur l'Arduino Uno
+
+vui8 play_note = 0;
+vui8 end_note = 0;
+vui16 timer2_overflow_count = 0; // Compteur de débordements pour TIMER2
 
 // Correspondance entre noms de notes et fréquences
 int get_frequency(const char* note)
@@ -105,23 +109,77 @@ void parse_partition_from_string(const char** data, t_part *p)
     // print_t_part(p);
 }
 
+// // Fonction pour jouer une note
+// void play_note(uint16_t frequency, uint16_t duration_ms)
+// {
+//     if (frequency == 0)
+//     {
+//         PORTB &= ~(1 << SPEAKER_PIN); // S'assurer que le haut-parleur est éteint
+//         _delay_loop_2(duration_ms); // Pause si la note est 0
+//         return;
+//     }
+    
+//     uint16_t period = (1000000 / frequency);
+//     uint16_t cycles = duration_ms;
+
+//     for (uint16_t i = 0; i < cycles; i++)
+//     {
+//         PORTB ^= (1 << SPEAKER_PIN);
+//         _delay_loop_2(period);
+//     }
+// }
+
+void    timers_stop()
+{
+    // Arrêter le TIMER1
+    TCCR1A = 0;
+    OCR1A = 0;
+}
+
+void    timers_init()
+{
+    // Configuration de TIMER1 pour le PWM (fréquence de la note)
+    tc1_clock(0, 0, 1);                     // Prescaler 8
+    tc1_mode(1, 0, 1, 1);                   // PWM Phase Correct (OCR1A)
+    tc1_compare_match(1, 0, 1, 0);          // Set OC1A on Compare Match, Clear OC1A at BOTTOM
+
+    // Configuration de TIMER2 pour la durée des notes
+    TCCR2A = 0;                             // Mode normal
+    TCCR2B = (1 << CS22) | (1 << CS21);     // Prescaler 256
+    TIMSK2 = (1 << TOIE2);                  // Activer l'interruption d'overflow
+}
+
 // Fonction pour jouer une note
-void play_note(uint16_t frequency, uint16_t duration_ms)
+void play_note_with_timer(ui16 frequency, ui16 duration_ms)
 {
     if (frequency == 0)
     {
-        PORTB &= ~(1 << SPEAKER_PIN); // S'assurer que le haut-parleur est éteint
-        _delay_loop_2(duration_ms); // Pause si la note est 0
-        return;
+        timers_stop();
+    }
+    else
+    {        
+        // Calcul de la période pour TIMER1 (PWM)
+        ui16 period = (F_CPU / 8 / frequency);
+        OCR1A = period;
     }
     
-    uint16_t period = (1000000 / frequency);
-    uint16_t cycles = duration_ms;
+    // Configurer TIMER2 pour la durée
+    timer2_overflow_count = 0; // Réinitialiser le compteur d'overflow
+    ui16 total_ovflow = (F_CPU / 256) * duration_ms / 1000; // Ticks pour la durée
+    TCNT2 = 0; // Compteur initial
+    end_note = total_ovflow; // Réinitialiser l'indicateur
+ 
+}
 
-    for (uint16_t i = 0; i < cycles; i++)
+ISR(TIMER2_OVF_vect)
+{
+    timer2_overflow_count++;
+
+    // Vérifier si la durée de la note est écoulée
+    if (timer2_overflow_count >= end_note)
     {
-        PORTB ^= (1 << SPEAKER_PIN);
-        _delay_loop_2(period);
+        timers_stop(); // Arrêter le timer
+        play_note = 1; // Indiquer que la note est terminée
     }
 }
 
@@ -131,36 +189,43 @@ int main(void)
     DDRB |= (1 << SPEAKER_PIN);
 
     uart_init();
+    timers_init();
+    sei(); // Activer les interruptions globales
 
-const char *tetris_data[] = {
+    const char *tetris_data[] = {
     "A5 |----|----|----|----|----|----|----|----|----|X---|----|----|----|----|----|----|----|",
     "G5 |----|----|----|----|----|----|----|----|----|--X-|----|----|----|----|----|----|----|",
     "F5 |----|----|----|----|----|----|----|----|---X|---X|----|----|----|----|----|----|----|",
-    "E5 |X---|----|----|X---|----|--X-|----|----|----|----|X---|X---|----|--X-|----|----|----|",
+    "E5 |Xx--|----|----|X---|----|--X-|----|----|----|----|X---|X---|----|--X-|----|----|----|",
     "D5 |----|X---|----|--X-|----|X---|----|----|-X--|----|----|--X-|----|X---|----|----|----|",
     "C5 |---X|--X-|---X|---X|---X|----|X---|----|----|----|---X|---X|---X|----|X---|----|----|",
     "B4 |--X-|---X|----|----|X---|----|----|----|----|----|----|----|X-X-|----|----|----|----|",
-    "A4 |----|----|X-X-|----|----|----|--X-|X---|----|----|----|----|----|----|----|X---|X---|" };
+    "A4 |----|----|X-X-|----|----|----|--X-|X---|----|----|----|----|----|----|----|XXXX|X---|" };
     //   1    5    9    13   17   21   25   29   33   37   41   45   49   53   57   61   65
 
     t_part p = {0}; // Initialisation de la partition
     
     
-    uart_printstr("Lecture de la partition...\r\n");
     // Partition lue depuis la chaîne de caractères
-    uart_printstr("before parse\r\n");
     parse_partition_from_string(tetris_data, &p);
 
-    uart_printstr("Partition lue:\r\n");
     while (1)
     {
-        // Lecture et exécution de la partition
-        for (int t = 0; t < TEMPS_MAX; t++)
-        {            
-            play_note(p.notes[t].frequency / 2, p.notes[t].duration * 2);
-            // _delay_ms(50);
+        if (play_note)
+        {
+            // Passer à la note suivante
+            play_note_with_timer(p.notes[play_note].frequency / 2, p.notes[play_note].duration * 2);
+            play_note++;
+
+            // Réinitialiser l'indicateur
+            end_note = 0;
+
+            // Revenir au début si toutes les notes ont été jouées
+            if (play_note >= TEMPS_MAX)
+            {
+                play_note = 0;
+            }
         }
-        _delay_ms(1000);
     }
 
     return 0;

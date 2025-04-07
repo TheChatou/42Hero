@@ -3,21 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   uart.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 13:22:04 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/05 14:58:08 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/07 16:54:38 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "head.h"
-
-ui8	rounded(float f)
-{
-    if (f - (int)f >= 0.5)
-        return (ui8)f + 1;
-    return (ui8)f;
-}
 
 void    uart_init()
 {

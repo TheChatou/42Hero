@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: chatou <chatou@student.42.fr>              +#+  +:+       +#+         #
+#    By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/03/03 10:43:44 by fcoullou          #+#    #+#              #
-#    Updated: 2025/04/05 15:07:03 by chatou           ###   ########.fr        #
+#    Updated: 2025/04/07 16:53:24 by fcoullou         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -27,7 +27,7 @@ PORT			= /dev/ttyUSB0
 ################################################################################
 ##	FILES & DIRECTORIES
 ################################################################################
-SRC       		= main.c uart.c
+SRC       		= main.c uart.c timers.c libebdd.c
 OBJDIR    		= objdep
 OBJ				= $(SRC:%.c=$(OBJDIR)/%.o)
 DEP      		= $(OBJ:.o=.d)
