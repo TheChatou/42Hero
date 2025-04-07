@@ -6,18 +6,20 @@
 /*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/03/31 23:33:18 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/05 15:08:40 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
+#include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
 #include <stddef.h>
-
+#include <stdlib.h>
+#include <string.h>
 
 typedef uint8_t             ui8;
 typedef uint16_t            ui16;
@@ -26,35 +28,6 @@ typedef volatile uint8_t    vui8;
 typedef volatile uint16_t   vui16;
 typedef volatile uint32_t   vui32;
 
-// PORTS & PINS //
-#define _D5_R   PD5
-#define _D5_G   PD6
-#define _D5_B   PD3
-#define _D1     PB0
-#define _D2     PB1
-#define _D3     PB2
-#define _D4     PB4
-#define _SW1    PD2
-#define _SW2    PD3
-#define _POT    PC0
-#define _LDR    PC1
-#define _TEMP   PC2
-
-//  MASKS //
-#define R       (1 << _D5_R)
-#define G       (1 << _D5_G)
-#define B       (1 << _D5_B)
-#define D5_RGB  R | G | B
-#define D1      (1 << _D1)
-#define D2      (1 << _D2)
-#define D3      (1 << _D3)
-#define D4      (1 << _D4)
-#define D1234   D1 | D2 | D3 | D4
-#define SW1     (1 << _SW1)
-#define SW2     (1 << _SW2)
-#define POT     (1 << _POT)
-#define LDR     (1 << _LDR)
-#define TEMP    (1 << _TEMP)
 #define MASK_4BITS &0x0F
 
 
@@ -67,49 +40,10 @@ typedef volatile uint32_t   vui32;
 #define MOD_M     (t_rgb_mod){125, 0, 125}
 #define MOD_W     (t_rgb_mod){75, 75, 75}
 
-// ANSI ESCAPE CODES //
-#define NEXT_LINE       "\033[1E"
-#define CURSOR_LEFT     "\033[D"
-#define CURSOR_RIGHT    "\033[C"
-#define CURSOR_UP       "\033[A"
-#define CURSOR_DOWN     "\033[B"
-#define CLEAR_LINE      "\033[2K"
-#define CLEAR_SCREEN    "\033[2J"
-#define EC_RED             "\033[31m"
-#define EC_GREEN           "\033[32m"
-#define EC_YELLOW          "\033[33m"
-#define EC_BLUE            "\033[34m"
-#define EC_MAGENTA         "\033[35m"
-#define EC_CYAN            "\033[36m"
-#define EC_RESET           "\033[0m"
-#define EC_BOLD            "\033[1m"
-#define EC_UNDERLINE       "\033[4m"
-#define EC_ITALIC          "\033[3m"
 
-// ENUMS //
-typedef enum e_onoff
-{
-    OFF = 0,
-    ON = 1
-}           e_onoff;
+#define NOTES_MAX 9
+#define TEMPS_MAX 4
 
-typedef enum e_updo
-{
-    DOWN = 0,
-    UP = 1
-}           e_updo;
-
-typedef enum e_colors
-{
-    OFFF = 0,
-    RED = 1,
-    GREEN = 2,
-    BLUE = 3,
-    YELLOW = 4,
-    CYAN = 5,
-    MAGENTA = 6,
-    WHITE = 7
-}           e_colors;
 
 // STRUCTS //
 typedef struct LED_RGB
@@ -127,6 +61,24 @@ typedef struct rgb_mod
     ui8     b;
 }           t_rgb_mod;
 
+// ENUMS //
+typedef enum e_onoff
+{
+    OFF = 0,
+    ON = 1
+}           e_onoff;
+
+typedef struct Note
+{
+    int     frequency;                          // Fréquence en Hz
+    int     duration;                           // Durée en millisecondes
+}           Note;
+
+typedef struct
+{
+    Note    notes[NOTES_MAX][TEMPS_MAX];        // Tableau de notes sur une timeline
+}           Partition;
+
 // MY_LIB_EMBEDDED FUNCTIONS // libebdd.c
 void	clear_n_set(vui8 *port, ui8 bit);
 void	toogle_bit(vui8 *port, ui8 bit);
@@ -135,10 +87,6 @@ void	clear_bit(vui8 *port, ui8 bit);
 void    set_or_clear(vui8 *port, ui8 val, ui8 bit);
 ui8     is_bit_set(vui8 *port, ui8 bit);
 void	reset_registre(vui8 *reg);
-
-void	set_color(t_LED_RGB led, t_rgb_mod mode);
-void	clear_led_rgb(t_LED_RGB led);
-
 
 char	change_case(char c);
 ui8		ishex(char c);
