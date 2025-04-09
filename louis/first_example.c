@@ -7,8 +7,15 @@
 
 
 
-volatile uint8_t sheet[] = {0,1,1,1,0,1,0,1,0,1,1,1,0,0,0,1,1,1,1,1,0,1,0,0};
+const char *sheet[] = 
+        {"|--X-|---X|----|---X|---X|----|X---|----|-X--|---X|---X|---X|---X|----|X---|----|----",
+        "|----|----|X-X-|----|X---|----|--X-|X---|----|----|X---|----|X-X-|----|----|X---|X---"};
+
+#define TIME_0 0xaa55
+#define TIME_1 0x55aa
 #define _SHEET_SIZE = 24;
+
+
 
 void set_up()
 {
@@ -16,55 +23,67 @@ void set_up()
     PORTB = 0;
 }
 
-
-//set the values of the 8 ports
 void shiftOut(uint8_t data)
 {
-    // unlock latch
     PORTB &= ~(1 << RCLCK);
     for (uint8_t bit = 0; bit < 8; bit++)
     {
-        // clock low
         PORTB &= ~(1 << SRCLK);
-        // load bit to send
         if ((data >> bit) & 1)
             PORTB |= 1 << SER;
         else
             PORTB &= ~(1 << SER);
-        //clock high => shit registered shifted and value loaded
         PORTB |= (1 << SRCLK);
         _delay_us(10);
     }
-    // lock latch shift register copied into data register
     PORTB |= (1 << RCLCK);
+}
+
+void    shiftLane(uint16_t data)
+{
+    PORTB &= ~(1 << RCLCK);
+    for (uint8_t bit = 0; bit < 16; bit++)
+    {
+        PORTB &= ~(1 << SRCLK);
+        if ((data >> bit) & 1)
+            PORTB |= 1 << SER;
+        else
+            PORTB &= ~(1 << SER);
+        PORTB |= (1 << SRCLK);
+        _delay_us(10);
+    }
+    PORTB |= (1 << RCLCK);
+}
+
+void    load_notes(uint16_t *notes)
+{
+    static uint8_t idx = 0;
+    if (idx % 5 == 0)
+        idx = (idx+1) % 86;
+    uint8_t instr1 = (*notes & 0xff00) >> 8;
+    uint8_t instr2 = (*notes & 0x00ff);
+    instr1 <<= 1;
+    instr2 <<= 1;
+    if (sheet[0][idx] == 'X')
+        instr1 |= 1;
+    if (sheet[1][idx] == 'X')
+        instr2 |=  1;
+    *notes = (instr1 << 8) | instr2;
+    idx = (idx + 1) % 86;
 }
 
 int main()
 {
     set_up();
-    shiftOut(0b11111111);
-    _delay_ms(1000);
-    shiftOut(0b00000000);
-    _delay_ms(1000);
-    uint8_t leds = 0;
-    for (uint8_t i = 0; i < 8; i++)
-    {
-        leds |= sheet[i] << i;
-    }
-    shiftOut(leds);
-  
+    shiftLane(0xffff);
+    _delay_ms(2000);
+    shiftLane(0);
+    uint16_t notes = 0;
     while(1)
     {
-       
-        _delay_ms(1000);
-        uint8_t idx = 8;
-        while(idx < 24)
-        {
-            leds = (leds >> 1) | (sheet[idx] << 7);
-            shiftOut(leds);
-            _delay_ms(1000);
-            idx++;
-        }
-       
+        load_notes(&notes);
+        shiftLane(notes);
+        _delay_ms(200);
     }
+
 }
