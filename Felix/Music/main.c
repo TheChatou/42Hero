@@ -6,17 +6,20 @@
 /*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/21 21:42:22 by chatou            #+#    #+#             */
-/*   Updated: 2025/04/21 22:45:20 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/21 23:54:06 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "head.h"
 #include "tetris.h"
+#include "mario.h"
 
 #define SPEAKER_PIN PB1 // Pin D9 est PB1 sur l'Arduino Uno
 
 vui8 end_note = 0;
 vui16 tc2_counter = 0; // Compteur de débordements pour TIMER2
+vui8 curr_note = 0; // Note actuelle à jouer
+volatile t_notes current; 
 
 void    timers_stop()
 {
@@ -54,10 +57,11 @@ void play_note_with_timer(uint8_t note_index)
     tc1_init();
     tc2_init();
     
-    t_notes notes_from_flash;
-    memcpy_P(&notes_from_flash, &notes.notes[note_index], sizeof(t_notes));
+    // memcpy_P((t_notes *)&current, &tetris.notes[note_index], sizeof(t_notes));
 
-    if (notes_from_flash.count == 0)
+    memcpy_P((t_notes *)&current, &mario.notes[note_index], sizeof(t_notes));
+
+    if (current.count == 0)
     {
         timers_stop(); // Silence
         return;
@@ -65,23 +69,15 @@ void play_note_with_timer(uint8_t note_index)
 
     static vui8 current_alt_note = 0;
 
-    // Alterner entre les fréquences si plusieurs notes sont présentes
-    if (notes_from_flash.count > 1)
-    {
-        current_alt_note = (current_alt_note + 1) % notes_from_flash.count;
-    }
-    else
-    {
-        current_alt_note = 0;
-    }
-
     // uart_print_int(note_index);
     // uart_printstr(" - ");
-    // uart_print_int(notes_from_flash.freqs[current_alt_note]);
-    // uart_printstr(" - Note \r\n");
+    // uart_print_int(current.freqs[current_alt_note]);
+    // uart_printstr(" - Note ");
+    // uart_print_int(current.count);
+    // uart_printstr(" - Count\r\n");
 
     // Calculer ICR1 pour générer la bonne fréquence (Fast PWM avec ICR1 comme TOP)
-    ui16 frequency = notes_from_flash.freqs[current_alt_note];
+    ui16 frequency = current.freqs[current_alt_note];
     ui16 top = ((F_CPU / (8 * frequency)) - 1) % 65535; // Prescaler 8
     ICR1 = top;
 
@@ -99,6 +95,26 @@ void play_note_with_timer(uint8_t note_index)
 ISR(TIMER2_COMPA_vect)
 {
     tc2_counter++;
+    
+    // uart_print_ui16(current.count);
+    if (current.count > 1)
+    {
+        // Alterner entre les fréquences si plusieurs notes sont présentes
+        static vui8 current_alt_note = 0;
+        current_alt_note = (current_alt_note + 1) % current.count;
+
+        // Calculer ICR1 pour générer la bonne fréquence (Fast PWM avec ICR1 comme TOP)
+        ui16 frequency = current.freqs[current_alt_note];
+        ui16 top = ((F_CPU / (16 * frequency)) - 1) % 65535; // Prescaler 8
+        ICR1 = top;
+
+        // uart_printstr("TOP : ");
+        // uart_print_ui16(top);
+        // uart_printstr("\r\n");
+        
+        OCR1A = top / 2; // 50% duty cycle
+    }
+
     if (tc2_counter >= 250)
     {
         tc2_counter = 0;
@@ -123,7 +139,7 @@ int main(void)
         if (end_note)
         {
             play_note_with_timer(curr_note);
-            curr_note = (curr_note + 1) % TEMPS_MAX;
+            curr_note = (curr_note + 1) % TEMPS_MAX_2;
 
             // uart_print_int(curr_note);
             // uart_printstr(" - Note \r\n");

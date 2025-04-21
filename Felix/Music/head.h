@@ -6,7 +6,7 @@
 /*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/21 22:23:56 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/21 23:47:27 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ typedef volatile uint32_t   vui32;
 
 #define NOTES_MAX 4
 #define TEMPS_MAX 548
+#define TEMPS_MAX_2 211
 
 // Fréquences des notes
 #define N0  0

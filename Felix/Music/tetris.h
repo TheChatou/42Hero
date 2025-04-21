@@ -6,7 +6,7 @@
 /*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/21 21:40:02 by chatou            #+#    #+#             */
-/*   Updated: 2025/04/21 22:24:47 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/21 23:33:30 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 #include "head.h"
 
-const t_part notes PROGMEM = {
+const t_part tetris PROGMEM = {
     .notes = {   {.freqs = {0, 0, 0, 0}, .count = 0},
         {.freqs = {165, 659, 0, 0}, .count = 2},
         {.freqs = {165, 659, 0, 0}, .count = 2},
