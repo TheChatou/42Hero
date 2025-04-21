@@ -3,125 +3,106 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
+/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/31 16:47:16 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/07 17:27:14 by fcoullou         ###   ########.fr       */
+/*   Created: 2025/04/21 21:42:22 by chatou            #+#    #+#             */
+/*   Updated: 2025/04/21 22:45:20 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "head.h"
+#include "tetris.h"
 
 #define SPEAKER_PIN PB1 // Pin D9 est PB1 sur l'Arduino Uno
 
-// Correspondance entre noms de notes et fréquences
-int get_frequency(const char* note)
+vui8 end_note = 0;
+vui16 tc2_counter = 0; // Compteur de débordements pour TIMER2
+
+void    timers_stop()
 {
-    if (strcmp(note, "C3") == 0) return C3;
-    if (strcmp(note, "c3") == 0) return c3;
-    if (strcmp(note, "D3") == 0) return D3;
-    if (strcmp(note, "d3") == 0) return d3;
-    if (strcmp(note, "E3") == 0) return E3;
-    if (strcmp(note, "F3") == 0) return F3;
-    if (strcmp(note, "f3") == 0) return f3;
-    if (strcmp(note, "G3") == 0) return G3;
-    if (strcmp(note, "g3") == 0) return g3;
-    if (strcmp(note, "A3") == 0) return A3;
-    if (strcmp(note, "a3") == 0) return a3;
-    if (strcmp(note, "B3") == 0) return B3;
-    if (strcmp(note, "C4") == 0) return C4;
-    if (strcmp(note, "c4") == 0) return c4;
-    if (strcmp(note, "D4") == 0) return D4;
-    if (strcmp(note, "d4") == 0) return d4;
-    if (strcmp(note, "E4") == 0) return E4;
-    if (strcmp(note, "F4") == 0) return F4;
-    if (strcmp(note, "f4") == 0) return f4;
-    if (strcmp(note, "G4") == 0) return G4;
-    if (strcmp(note, "g4") == 0) return g4;
-    if (strcmp(note, "A4") == 0) return A4;
-    if (strcmp(note, "a4") == 0) return a4;
-    if (strcmp(note, "B4") == 0) return B4;
-    if (strcmp(note, "C5") == 0) return C5;
-    if (strcmp(note, "c5") == 0) return c5;
-    if (strcmp(note, "D5") == 0) return D5;
-    if (strcmp(note, "d5") == 0) return d5;
-    if (strcmp(note, "E5") == 0) return E5;
-    if (strcmp(note, "F5") == 0) return F5;
-    if (strcmp(note, "f5") == 0) return f5;
-    if (strcmp(note, "G5") == 0) return G5;
-    if (strcmp(note, "g5") == 0) return g5;
-    if (strcmp(note, "A5") == 0) return A5;
-    if (strcmp(note, "a5") == 0) return a5;
-    if (strcmp(note, "B5") == 0) return B5;
-    if (strcmp(note, "C6") == 0) return C6;
-    if (strcmp(note, "N0") == 0) return N0;
-    if (strcmp(note, "--") == 0) return N0; // Silence
+    // Arrêter le TIMER1
+    TCCR1A = 0;
+    OCR1A = 0;
+}
+
+void    tc1_init()
+{
+    // Configuration de TIMER1 pour le PWM (fréquence de la note)
+    tc1_clock(0, 1, 0);                     // Prescaler 8
+    tc1_mode(1, 1, 1, 0);                   // PWM Fast PWM (ICR1)
+    tc1_compare_match(1, 0, 0, 0);          // Set OC1A on Compare Match, Clear OC1A at BOTTOM    DDRB |= (1 << SPEAKER_PIN); // OC1A (PB1) en sortie
+    DDRB |= (1 << SPEAKER_PIN);             // OC1A (PB1) en sortie
+    ICR1 = 0;                            // Initialiser ICR1 à 0
+    OCR1A = 0;                           // Initialiser OCR1A à 0
     
-    return 0;
 }
 
-void    print_t_part(t_part *p)
+void    tc2_init()
 {
-    for (int i = 0; i < TEMPS_MAX; i++)
-    {
-        uart_print_int(i + 1);
-        uart_printstr(" - ");
-        uart_print_ui16(p->notes[i].frequency);
-        uart_printstr(" Hz, Durée: ");
-        uart_print_ui16(p->notes[i].duration);
-        uart_printstr(" ms\r\n");
-    }
-}
+    // Configuration de TIMER2 pour la durée des notes
+    tc2_clock(0, 0, 1);                     // Prescaler 64
+    tc2_mode(0, 1, 0);                      // Mode CTC
+    tc2_compare_match(0, 0, 0, 0);          // Déconnecter OC2A et OC2B
 
-// Fonction pour parser les données de la partition depuis une chaîne
-void parse_partition_from_string(const char** data, t_part *p)
-{
-    int i = 0;
-        
-    while (i < NOTES_MAX)
-    {
-        char note[3] = { data[i][0], data[i][1], '\0' };
-        int freq = get_frequency(note);
-
-        int j = 4;
-        int t = 0;
-        while (data[i][j] != '\0')
-        {
-            if (data[i][j] == '|')
-            {
-                j++;
-                continue;
-            }
-            else if (data[i][j] == 'X')
-            {
-                p->notes[t].duration = T_1_4;
-                p->notes[t].frequency = freq;
-            }
-            t++;
-            j++;
-        }
-        i++;
-    }
-    // print_t_part(p);
+    TIMSK2 |= (1 << OCIE2A);                // Activer l'interruption de comparaison
+    OCR2A = 249;                            // Valeur de comparaison pour 1 ms
 }
 
 // Fonction pour jouer une note
-void play_note(uint16_t frequency, uint16_t duration_ms)
+void play_note_with_timer(uint8_t note_index)
 {
-    if (frequency == 0)
+    tc1_init();
+    tc2_init();
+    
+    t_notes notes_from_flash;
+    memcpy_P(&notes_from_flash, &notes.notes[note_index], sizeof(t_notes));
+
+    if (notes_from_flash.count == 0)
     {
-        PORTB &= ~(1 << SPEAKER_PIN); // S'assurer que le haut-parleur est éteint
-        _delay_loop_2(duration_ms); // Pause si la note est 0
+        timers_stop(); // Silence
         return;
     }
-    
-    uint16_t period = (1000000 / frequency);
-    uint16_t cycles = duration_ms;
 
-    for (uint16_t i = 0; i < cycles; i++)
+    static vui8 current_alt_note = 0;
+
+    // Alterner entre les fréquences si plusieurs notes sont présentes
+    if (notes_from_flash.count > 1)
     {
-        PORTB ^= (1 << SPEAKER_PIN);
-        _delay_loop_2(period);
+        current_alt_note = (current_alt_note + 1) % notes_from_flash.count;
+    }
+    else
+    {
+        current_alt_note = 0;
+    }
+
+    // uart_print_int(note_index);
+    // uart_printstr(" - ");
+    // uart_print_int(notes_from_flash.freqs[current_alt_note]);
+    // uart_printstr(" - Note \r\n");
+
+    // Calculer ICR1 pour générer la bonne fréquence (Fast PWM avec ICR1 comme TOP)
+    ui16 frequency = notes_from_flash.freqs[current_alt_note];
+    ui16 top = ((F_CPU / (8 * frequency)) - 1) % 65535; // Prescaler 8
+    ICR1 = top;
+
+    uart_printstr("TOP : ");
+    uart_print_ui16(top);
+    uart_printstr("\r\n");
+    
+    OCR1A = top / 2; // 50% duty cycle
+
+    // Redémarrer le compteur de Timer2
+    tc2_counter = 0;
+    TCNT2 = 0;
+}
+
+ISR(TIMER2_COMPA_vect)
+{
+    tc2_counter++;
+    if (tc2_counter >= 250)
+    {
+        tc2_counter = 0;
+        end_note = 1; // Indiquer que la note est terminée
     }
 }
 
@@ -131,36 +112,24 @@ int main(void)
     DDRB |= (1 << SPEAKER_PIN);
 
     uart_init();
+    tc1_init();
+    tc2_init();
+    sei(); // Activer les interruptions globales       
 
-const char *tetris_data[] = {
-    "A5 |----|----|----|----|----|----|----|----|----|X---|----|----|----|----|----|----|----|",
-    "G5 |----|----|----|----|----|----|----|----|----|--X-|----|----|----|----|----|----|----|",
-    "F5 |----|----|----|----|----|----|----|----|---X|---X|----|----|----|----|----|----|----|",
-    "E5 |X---|----|----|X---|----|--X-|----|----|----|----|X---|X---|----|--X-|----|----|----|",
-    "D5 |----|X---|----|--X-|----|X---|----|----|-X--|----|----|--X-|----|X---|----|----|----|",
-    "C5 |---X|--X-|---X|---X|---X|----|X---|----|----|----|---X|---X|---X|----|X---|----|----|",
-    "B4 |--X-|---X|----|----|X---|----|----|----|----|----|----|----|X-X-|----|----|----|----|",
-    "A4 |----|----|X-X-|----|----|----|--X-|X---|----|----|----|----|----|----|----|X---|X---|" };
-    //   1    5    9    13   17   21   25   29   33   37   41   45   49   53   57   61   65
-
-    t_part p = {0}; // Initialisation de la partition
     
-    
-    uart_printstr("Lecture de la partition...\r\n");
-    // Partition lue depuis la chaîne de caractères
-    uart_printstr("before parse\r\n");
-    parse_partition_from_string(tetris_data, &p);
-
-    uart_printstr("Partition lue:\r\n");
+    int curr_note = 0; // Quart de temps actuel
     while (1)
     {
-        // Lecture et exécution de la partition
-        for (int t = 0; t < TEMPS_MAX; t++)
-        {            
-            play_note(p.notes[t].frequency / 2, p.notes[t].duration * 2);
-            // _delay_ms(50);
+        if (end_note)
+        {
+            play_note_with_timer(curr_note);
+            curr_note = (curr_note + 1) % TEMPS_MAX;
+
+            // uart_print_int(curr_note);
+            // uart_printstr(" - Note \r\n");
+            
+            end_note = 0;
         }
-        _delay_ms(1000);
     }
 
     return 0;

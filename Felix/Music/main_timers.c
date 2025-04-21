@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   main_timers.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
+/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 16:47:16 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/07 17:25:05 by fcoullou         ###   ########.fr       */
+/*   Updated: 2025/04/21 22:36:34 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 #define SPEAKER_PIN PB1 // Pin D9 est PB1 sur l'Arduino Uno
 
-vui8 play_note = 0;
+vui8 curr_note = 0;
 vui8 end_note = 0;
-vui16 timer2_overflow_count = 0; // Compteur de débordements pour TIMER2
+vui16 tc2_counter = 0; // Compteur de débordements pour TIMER2
 
 // Correspondance entre noms de notes et fréquences
 int get_frequency(const char* note)
@@ -136,17 +136,23 @@ void    timers_stop()
     OCR1A = 0;
 }
 
-void    timers_init()
+void    tc1_init()
 {
     // Configuration de TIMER1 pour le PWM (fréquence de la note)
-    tc1_clock(0, 0, 1);                     // Prescaler 8
-    tc1_mode(1, 0, 1, 1);                   // PWM Phase Correct (OCR1A)
-    tc1_compare_match(1, 0, 1, 0);          // Set OC1A on Compare Match, Clear OC1A at BOTTOM
+    tc1_clock(0, 1, 0);                     // Prescaler 8
+    tc1_mode(1, 1, 1, 0);                   // PWM Fast PWM (ICR1)
+    tc1_compare_match(1, 0, 0, 0);          // Set OC1A on Compare Match, Clear OC1A at BOTTOM
+}
 
+void    tc2_init()
+{
     // Configuration de TIMER2 pour la durée des notes
-    TCCR2A = 0;                             // Mode normal
-    TCCR2B = (1 << CS22) | (1 << CS21);     // Prescaler 256
-    TIMSK2 = (1 << TOIE2);                  // Activer l'interruption d'overflow
+    tc2_clock(0, 1, 1);                     // Prescaler 64
+    tc2_mode(0, 1, 0);                      // Mode CTC
+    tc2_compare_match(0, 0, 0, 0);          // Déconnecter OC2A et OC2B
+
+    TIMSK2 |= (1 << OCIE2A);                // Activer l'interruption de comparaison
+    OCR2A = 249;                            // Valeur de comparaison pour 1 ms
 }
 
 // Fonction pour jouer une note
@@ -154,32 +160,27 @@ void play_note_with_timer(ui16 frequency, ui16 duration_ms)
 {
     if (frequency == 0)
     {
-        timers_stop();
+        timers_stop(); // Silence
+        return;
     }
-    else
-    {        
-        // Calcul de la période pour TIMER1 (PWM)
-        ui16 period = (F_CPU / 8 / frequency);
-        OCR1A = period;
-    }
-    
-    // Configurer TIMER2 pour la durée
-    timer2_overflow_count = 0; // Réinitialiser le compteur d'overflow
-    ui16 total_ovflow = (F_CPU / 256) * duration_ms / 1000; // Ticks pour la durée
-    TCNT2 = 0; // Compteur initial
-    end_note = total_ovflow; // Réinitialiser l'indicateur
- 
+
+    // Calcule TOP pour Timer1 → fréquence
+    ICR1 = frequency; // Définir la fréquence de la note
+    OCR1A = ICR1 / 2; // 50% duty cycle
+
+    // Configure Timer2 pour générer une interruption après duration_ms
+    // F_CPU / 128 = 125000 ticks/sec, donc 125 ticks = 1 ms
+    // OCR2A = (125 * duration_ms) / 1000; // attention à ne pas dépasser 255
+    TCNT2 = 0; // reset compteur
 }
 
-ISR(TIMER2_OVF_vect)
+ISR(TIMER2_COMPA_vect)
 {
-    timer2_overflow_count++;
-
-    // Vérifier si la durée de la note est écoulée
-    if (timer2_overflow_count >= end_note)
+    tc2_counter++;
+    if (tc2_counter >= 1000)
     {
-        timers_stop(); // Arrêter le timer
-        play_note = 1; // Indiquer que la note est terminée
+        tc2_counter = 0;
+        end_note = 1; // Indiquer que la note est terminée
     }
 }
 
@@ -189,7 +190,8 @@ int main(void)
     DDRB |= (1 << SPEAKER_PIN);
 
     uart_init();
-    timers_init();
+    tc1_init();
+    tc2_init();
     sei(); // Activer les interruptions globales
 
     const char *tetris_data[] = {
@@ -211,20 +213,24 @@ int main(void)
 
     while (1)
     {
-        if (play_note)
+        if (end_note)
         {
             // Passer à la note suivante
-            play_note_with_timer(p.notes[play_note].frequency / 2, p.notes[play_note].duration * 2);
-            play_note++;
+            play_note_with_timer(p.notes[curr_note].frequency, p.notes[curr_note].duration);
 
+            curr_note++;
+            
+            uart_print_int(curr_note);
+            uart_printstr(" - ");
+            
+            // Revenir au début si toutes les notes ont été jouées
+            if (curr_note >= TEMPS_MAX)
+            {
+                curr_note = 0;
+            }
+            
             // Réinitialiser l'indicateur
             end_note = 0;
-
-            // Revenir au début si toutes les notes ont été jouées
-            if (play_note >= TEMPS_MAX)
-            {
-                play_note = 0;
-            }
         }
     }
 

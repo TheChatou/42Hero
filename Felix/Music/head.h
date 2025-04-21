@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   head.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
+/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/07 16:54:09 by fcoullou         ###   ########.fr       */
+/*   Updated: 2025/04/21 22:23:56 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <avr/pgmspace.h>
 
 typedef uint8_t             ui8;
 typedef uint16_t            ui16;
@@ -40,8 +41,8 @@ typedef volatile uint32_t   vui32;
 #define MOD_W     (t_rgb_mod){75, 75, 75}
 
 
-#define NOTES_MAX 9
-#define TEMPS_MAX 68
+#define NOTES_MAX 4
+#define TEMPS_MAX 548
 
 // Fréquences des notes
 #define N0  0
@@ -115,15 +116,15 @@ typedef enum e_onoff
     ON = 1
 }           e_onoff;
 
-typedef struct s_note
+typedef struct s_notes
 {
-    int     frequency;                          // Fréquence en Hz
-    int     duration;                           // Durée en millisecondes
-}           t_note;
+    int     freqs[NOTES_MAX];                          // Durée en millisecondes
+    int     count;                           // Nombre de notes dans le temps
+}           t_notes;
 
 typedef struct s_part
 {
-    t_note    notes[TEMPS_MAX];        // Tableau de notes sur une timeline
+    t_notes    notes[TEMPS_MAX]; // Tableau de notes sur une timeline
 }           t_part;
 
 // MY_LIB_EMBEDDED FUNCTIONS // libebdd.c
