@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   part_converter.h                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/21 20:02:51 by chatou            #+#    #+#             */
-/*   Updated: 2025/04/21 21:58:27 by chatou           ###   ########.fr       */
+/*   Updated: 2025/04/22 13:11:40 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 
 #define NOTES_MAX 4
-#define TEMPS_MAX 548
+#define TEMPS_MAX 68
 
 // Fréquences des notes
 #define N0  0
