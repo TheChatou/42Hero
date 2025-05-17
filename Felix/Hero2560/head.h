@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   head.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
+/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/22 13:36:07 by fcoullou         ###   ########.fr       */
+/*   Updated: 2025/05/16 10:30:27 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ typedef volatile uint32_t   vui32;
 #define POLY_MAX 4
 #define TEMPS_MAX 548
 #define TEMPS_MAX_2 211
+#define TRACK_LENGTH 1414
 
 #define T_1_4   150
 #define T_1_2   300
@@ -53,7 +54,6 @@ typedef volatile uint32_t   vui32;
 #define T_1_16  37
 #define T_1_32  18
 #define T_1     600
-
 
 // STRUCTS //
 typedef struct LED_RGB
@@ -78,22 +78,14 @@ typedef enum e_onoff
     ON = 1
 }           e_onoff;
 
-typedef struct s_step
-{
-    uint8_t note_ids[POLY_MAX];  // index vers une table de fréquences
-    uint8_t count;               // nombre de voix actives
-}           t_step;
+typedef struct {
+    ui16 note[TRACK_LENGTH];        // 1 piste = TRACK_LENGTH notes
+} t_track;
 
-typedef struct s_notes
-{
-    int     freqs[NOTES_MAX];                          // Durée en millisecondes
-    int     count;                           // Nombre de notes dans le temps
-}           t_notes;
-
-typedef struct s_part
-{
-    t_notes    notes[TEMPS_MAX]; // Tableau de notes sur une timeline
-}           t_part;
+typedef struct {
+    t_track tracks[POLY_MAX];      // 4 pistes max
+    ui16 length;                   // Nombre total de steps
+} t_part;
 
 // MY_LIB_EMBEDDED FUNCTIONS // libebdd.c
 void	clear_n_set(vui8 *port, ui8 bit);
@@ -124,6 +116,18 @@ void    tc2_compare_match(ui8 com2A1, ui8 com2A0, ui8 com2B1, ui8 com2B0);
 void    tc1_clock(ui8 cs12, ui8 cs11, ui8 cs10);
 void    tc1_mode(ui8 wgm13, ui8 wgm12, ui8 wgm11, ui8 wgm10);
 void    tc1_compare_match(ui8 com1A1, ui8 com1A0, ui8 com1B1, ui8 com1B0);
+// TIMER 3 16 bits
+void    tc3_clock(ui8 cs32, ui8 cs31, ui8 cs30);
+void    tc3_mode(ui8 wgm33, ui8 wgm32, ui8 wgm31, ui8 wgm30);
+void    tc3_compare_match(ui8 com3A1, ui8 com3A0, ui8 com3B1, ui8 com3B0);
+// TIMER 4 16 bits
+void    tc4_clock(ui8 cs42, ui8 cs41, ui8 cs40);
+void    tc4_mode(ui8 wgm43, ui8 wgm42, ui8 wgm41, ui8 wgm40);
+void    tc4_compare_match(ui8 com4A1, ui8 com4A0, ui8 com4B1, ui8 com4B0);
+// TIMER 5 16 bits
+void    tc5_clock(ui8 cs52, ui8 cs51, ui8 cs50);
+void    tc5_mode(ui8 wgm53, ui8 wgm52, ui8 wgm51, ui8 wgm50);
+void    tc5_compare_match(ui8 com5A1, ui8 com5A0, ui8 com5B1, ui8 com5B0);
 
 // USART FUNCTIONS // usart.c
 ui8     rounded(float f);

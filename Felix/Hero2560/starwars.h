@@ -2,7 +2,7 @@
 
 #include "head.h"
 
-const t_part tetris_song PROGMEM = {
+const t_part starwars PROGMEM = {
     .tracks = {
         {
             .note = {

@@ -1,4 +1,5 @@
 import pretty_midi
+import sys
 
 NOTE_NAMES = ['C', 'c', 'D', 'd', 'E', 'F',
               'f', 'G', 'g', 'A', 'a', 'B']
@@ -8,72 +9,68 @@ def note_name(midi_note):
     name = NOTE_NAMES[midi_note % 12]
     return f"{name}{octave}"
 
-def parse_midi_to_tetris_data(filename, resolution=0.25):
+def make_empty_grid(length):
+    return ["--"] * length
+
+def parse_midi_fixed_tracks(filename, resolution=0.125, max_tracks=4):
     midi = pretty_midi.PrettyMIDI(filename)
-    instrument = midi.instruments[0]  # Prend la première piste
-    note_grid = {}
-
-    # Calcule la durée totale en secondes
     total_time = midi.get_end_time()
-    steps = int(total_time // resolution) + 1
+    steps = int(total_time / resolution) + 1
 
-    # Prépare une grille vide
-    for n in range(21, 109):  # Plage de notes MIDI normales (piano)
-        note_grid[n] = ['----'] * steps
+    # Crée 4 pistes vides
+    tracks = [make_empty_grid(steps) for _ in range(max_tracks)]
 
-    # Remplir la grille avec précision au quart de temps
-    for note in instrument.notes:
-        start = note.start / resolution  # Position de début en quarts de temps
-        end = note.end / resolution      # Position de fin en quarts de temps
-        start_step = int(start)          # Temps de début (entier)
-        end_step = int(end)              # Temps de fin (entier)
+    # Trie toutes les notes de tous les instruments
+    all_notes = []
+    for instrument in midi.instruments:
+        for note in instrument.notes:
+            all_notes.append((note.start, note))  # tri par temps
+    all_notes.sort(key=lambda x: x[0])
 
-        for t in range(start_step, min(end_step + 1, steps)):
-            # Détermine les quarts de temps à activer pour cette note
-            for quarter in range(4):
-                quarter_time = t + quarter * 0.25
-                if start <= quarter_time < end:
-                    # Active le quart de temps correspondant
-                    note_grid[note.pitch][t] = (
-                        note_grid[note.pitch][t][:quarter] + 'X' +
-                        note_grid[note.pitch][t][quarter + 1:]
-                    )
+    for start_time, note in all_notes:
+        t = int(start_time / resolution)
+        pitch = note_name(note.pitch)
 
-    # Génère les lignes pour tetris_data
-    tetris_data = []
-    for midi_note in sorted(note_grid.keys()):
-        note_name_str = note_name(midi_note)
-        ascii_line = f"{note_name_str} |" + "|".join(note_grid[midi_note]) + "|"
-        # Ajouter uniquement les lignes contenant 'X'
-        if 'X' in ascii_line:
-            tetris_data.append(f"\"{ascii_line}\"")
+        placed = False
+        for track in tracks:
+            if track[t] == "--":
+                track[t] = pitch
+                placed = True
+                break
 
-    # Ajouter la ligne de numérotation
-    time_line = "    //" + "".join(f"{i:>5}" for i in range(1, steps + 1, 4))
-    tetris_data.append(time_line)
+        # if not placed:
+        #     print(f"❌ Trop de notes simultanées à t={t * resolution:.3f}s — impossible de caser plus de 4 voix !")
+        #     sys.exit(1)
 
-    return tetris_data
+    return steps, tracks
 
-def save_tetris_data_to_file(tetris_data, output_filename):
+def format_output(steps, tracks):
+    output_lines = []
+    for i, line in enumerate(tracks):
+        formatted = f"PISTE{i+1} |"
+        for j in range(steps):
+            formatted += line[j]
+            if (j + 1) % 4 == 0:
+                formatted += "|"
+        output_lines.append(formatted)
+    return output_lines
+
+def save_output_to_file(output_lines, output_filename):
     with open(output_filename, 'w') as f:
-        f.write("const char *tetris_data[] = {\n")
-        f.write(",\n".join(tetris_data))
-        f.write("\n};\n")
+        for line in output_lines:
+            f.write(line + "\n")
 
 if __name__ == "__main__":
-    import sys
-
     if len(sys.argv) < 2:
-        print("Usage: python3 42hero_part.py <input_midi_file>")
+        print("Usage: python3 midi_to_txt_4pistes.py <input_midi_file> [resolution]")
         sys.exit(1)
 
     input_filename = sys.argv[1]
-    output_filename = "tetris_data.c"  # Nom du fichier de sortie
+    resolution = float(sys.argv[2]) if len(sys.argv) > 2 else 0.125  # par défaut : 1/8e de temps
+    output_filename = "tetris_output.txt"
 
-    # Convertir le fichier MIDI en données tetris_data
-    tetris_data = parse_midi_to_tetris_data(input_filename)
+    steps, tracks = parse_midi_fixed_tracks(input_filename, resolution=resolution)
+    output_lines = format_output(steps, tracks)
+    save_output_to_file(output_lines, output_filename)
 
-    # Sauvegarder dans un fichier
-    save_tetris_data_to_file(tetris_data, output_filename)
-
-    print(f"Transcription sauvegardée dans {output_filename}")
+    print(f"✅ Fichier généré avec résolution {resolution} : {output_filename}")

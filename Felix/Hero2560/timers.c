@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   timers.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
+/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/11 10:49:50 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/04/07 16:31:07 by fcoullou         ###   ########.fr       */
+/*   Updated: 2025/05/16 10:28:31 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,78 @@ void    tc1_compare_match(ui8 com1A1, ui8 com1A0, ui8 com1B1, ui8 com1B0)
     set_or_clear(&TCCR1A, com1A0, COM1A0);
     set_or_clear(&TCCR1A, com1B1, COM1B1);
     set_or_clear(&TCCR1A, com1B0, COM1B0);
+}
+
+// TIMER 3 16 bits //////////////////////////////////////////////////////////////////
+void    tc3_clock(ui8 cs32, ui8 cs31, ui8 cs30)
+{
+    set_or_clear(&TCCR3B, cs32, CS32);
+    set_or_clear(&TCCR3B, cs31, CS31);
+    set_or_clear(&TCCR3B, cs30, CS30);
+}
+
+void    tc3_mode(ui8 wgm33, ui8 wgm32, ui8 wgm31, ui8 wgm30)
+{
+    set_or_clear(&TCCR3A, wgm30, WGM30);
+    set_or_clear(&TCCR3A, wgm31, WGM31);
+    set_or_clear(&TCCR3B, wgm32, WGM32);
+    set_or_clear(&TCCR3B, wgm33, WGM33);
+}
+
+void    tc3_compare_match(ui8 com3A1, ui8 com3A0, ui8 com3B1, ui8 com3B0)
+{
+    set_or_clear(&TCCR3A, com3A1, COM3A1);
+    set_or_clear(&TCCR3A, com3A0, COM3A0);
+    set_or_clear(&TCCR3A, com3B1, COM3B1);
+    set_or_clear(&TCCR3A, com3B0, COM3B0);
+}
+
+// TIMER 4 16 bits //////////////////////////////////////////////////////////////////
+void    tc4_clock(ui8 cs42, ui8 cs41, ui8 cs40)
+{
+    set_or_clear(&TCCR4B, cs42, CS42);
+    set_or_clear(&TCCR4B, cs41, CS41);
+    set_or_clear(&TCCR4B, cs40, CS40);
+}
+
+void    tc4_mode(ui8 wgm43, ui8 wgm42, ui8 wgm41, ui8 wgm40)
+{
+    set_or_clear(&TCCR4A, wgm40, WGM40);
+    set_or_clear(&TCCR4A, wgm41, WGM41);
+    set_or_clear(&TCCR4B, wgm42, WGM42);
+    set_or_clear(&TCCR4B, wgm43, WGM43);
+}
+
+void    tc4_compare_match(ui8 com4A1, ui8 com4A0, ui8 com4B1, ui8 com4B0)
+{
+    set_or_clear(&TCCR4A, com4A1, COM4A1);
+    set_or_clear(&TCCR4A, com4A0, COM4A0);
+    set_or_clear(&TCCR4A, com4B1, COM4B1);
+    set_or_clear(&TCCR4A, com4B0, COM4B0);
+}
+
+void    tc5_clock(ui8 cs52, ui8 cs51, ui8 cs50)
+{
+    set_or_clear(&TCCR5B, cs52, CS52);
+    set_or_clear(&TCCR5B, cs51, CS51);
+    set_or_clear(&TCCR5B, cs50, CS50);
+}
+
+// TIMER 5 16 bits //////////////////////////////////////////////////////////////////
+void    tc5_mode(ui8 wgm53, ui8 wgm52, ui8 wgm51, ui8 wgm50)
+{
+    set_or_clear(&TCCR5A, wgm50, WGM50);
+    set_or_clear(&TCCR5A, wgm51, WGM51);
+    set_or_clear(&TCCR5B, wgm52, WGM52);
+    set_or_clear(&TCCR5B, wgm53, WGM53);
+}
+
+void    tc5_compare_match(ui8 com5A1, ui8 com5A0, ui8 com5B1, ui8 com5B0)
+{
+    set_or_clear(&TCCR5A, com5A1, COM5A1);
+    set_or_clear(&TCCR5A, com5A0, COM5A0);
+    set_or_clear(&TCCR5A, com5B1, COM5B1);
+    set_or_clear(&TCCR5A, com5B0, COM5B0);
 }
 
 
