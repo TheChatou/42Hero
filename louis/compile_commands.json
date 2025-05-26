@@ -1,0 +1,20 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/avr-gcc",
+      "-mmcu=atmega2560",
+      "-I./",
+      "-DF_CPU=16000000UL",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-c",
+      "-o",
+      ".objs/seven_segment.o",
+      "seven_segment.c"
+    ],
+    "directory": "/home/lmahe/Documents/42/42Hero/louis",
+    "file": "/home/lmahe/Documents/42/42Hero/louis/seven_segment.c",
+    "output": "/home/lmahe/Documents/42/42Hero/louis/.objs/seven_segment.o"
+  }
+]

@@ -4,11 +4,11 @@ FREQ = 16000000UL
 
 CC = avr-gcc
 
-ARCH = atmega328p
+ARCH = atmega2560
 
 CFLAGS = -mmcu=$(ARCH) -I$(INC_DIR) -DF_CPU=$(FREQ) -O2 -Wall -Wextra -MMD -MP
 
-SRCS_FILES = main.c uart.c utils.c
+SRCS_FILES = seven_segment.c
 
 BUILD_DIR = .objs/
 SRCS_DIR = ./
@@ -45,7 +45,7 @@ uart: hex flash
 
 #port ?? https://avrdudes.github.io/avrdude/8.0/avrdude.pdf
 flash: $(NAME)
-	avrdude -c arduino -b 115200 -p atmega328p -P /dev/ttyACM0 -D -U flash:w:$<:i
+	avrdude -v -cwiring -b115200 -pm2560 -P /dev/ttyUSB0 -D -U flash:w:$<:i
 
 clean:
 	rm -rf $(NAME) $(ELF_NAME) $(BUILD_DIR)
