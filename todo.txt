@@ -1,0 +1,10 @@
+
+Fini 15 Juin date limite
+
++) => schema electrique kicad et attribution pin atmega => Louis
++) => 7 segment proto => Louis
++) => architecture pseudo code => Louis +? Felix
++) => chansons (combien?) + export pour les leds => Felix +? Louis
++) => dessin Fusion (fichier dxf) plan de coupe de chaque surface => Goeffrey
++) => Impressions 3d capuchon leds => ??
++) => achat bois (contreplaque 3/4 mm double zone bouton) dependant des plans pour la surface
