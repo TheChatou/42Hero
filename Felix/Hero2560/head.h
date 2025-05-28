@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   head.h                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/08 14:56:12 by fcoullou          #+#    #+#             */
-/*   Updated: 2025/05/16 10:30:27 by chatou           ###   ########.fr       */
+/*   Updated: 2025/05/27 10:17:49 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ typedef volatile uint32_t   vui32;
 #define POLY_MAX 4
 #define TEMPS_MAX 548
 #define TEMPS_MAX_2 211
-#define TRACK_LENGTH 1414
+#define MAX_LENGTH 2000
 
 #define T_1_4   150
 #define T_1_2   300
@@ -78,14 +78,18 @@ typedef enum e_onoff
     ON = 1
 }           e_onoff;
 
-typedef struct {
-    ui16 note[TRACK_LENGTH];        // 1 piste = TRACK_LENGTH notes
-} t_track;
+typedef struct
+{
+    ui16 note[MAX_LENGTH];          // 1 piste = MAX_LENGTH notes
+}           t_track;
 
-typedef struct {
-    t_track tracks[POLY_MAX];      // 4 pistes max
-    ui16 length;                   // Nombre total de steps
-} t_part;
+typedef struct
+{
+    t_track tracks[POLY_MAX];       // 4 pistes max
+    ui16 led[MAX_LENGTH];           // LEDs à allumer pour chaque tick
+    ui16 tempo;                     // Tempo de la musique
+    ui16 length;                    // Nombre total de ticks
+}           t_part;
 
 // MY_LIB_EMBEDDED FUNCTIONS // libebdd.c
 void	clear_n_set(vui8 *port, ui8 bit);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/21 21:42:22 by chatou            #+#    #+#             */
-/*   Updated: 2025/05/16 13:11:10 by chatou           ###   ########.fr       */
+/*   Updated: 2025/05/27 10:14:03 by fcoullou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,7 @@
 // #include "test_partition.h"
 
 vui8 end_note = 0;
-vui16 tc0_counter = 0;// Compteur de débordements pour TIMER2
-
+vui16 tc0_counter = 0;
 
 void    timers_stop()
 {
