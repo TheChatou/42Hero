@@ -13,7 +13,7 @@ typedef struct Expander
 
 } Expander;
 
-const volatile Expander segments = {&PORTA, PA0, PA2, PA4};
+volatile Expander segments = {&PORTA, PA0, PA2, PA4};
 
 void    shiftLane(Expander *exp, uint8_t *lane, uint8_t size)
 {
@@ -25,6 +25,9 @@ void    shiftLane(Expander *exp, uint8_t *lane, uint8_t size)
         {
             *exp->port &= ~(1 << exp->srclk);
             if ((data >> bit) & 1)
+ 
+ 
+ 
                 *exp->port |= 1 << exp->ser;
             else
                 *exp->port &= ~(1 << exp->ser);
@@ -40,8 +43,7 @@ void    setup()
 {
     DDRA |= (1 << PA4) | (1 << PA0) | (1 << PA2) | (1 << PA6);
     PORTA = 0;
-    DDRL = 0b00001111;
-    PORTL = 0;
+    
 }
 
 
@@ -49,15 +51,28 @@ void    setup()
 int main()
 {
     setup();
-    uint8_t digit[4] = {0b01000000, 0b00010000, 0b00000100, 0b00000001};
-    uint8_t nums[4] = {0b00000001, 0b00000011, 0b00001100, 0b00001001};
-    uint8_t idx = 0;
+    uint8_t zero[2] = {0b00010000, 0b11000000};
+    uint8_t one[2] = {0b00100000, 0b11111001};
+    uint8_t six[2] = {0b01000000, 0b10000010};
+    uint8_t five[2] = {0b10000000, 0b10010010};
+    uint8_t reset[2] = {0b00000000, 0b11111111};
     while(1)
     {
-        PORTA = digit[idx];
-        PORTL = nums[idx];
-        idx = (idx+1) % 4;
-        _delay_ms(500);
+        shiftLane(&segments, zero, 2);
+        // shiftLane(&segments, reset, 2);
+        shiftLane(&segments, one, 2);
+        // shiftLane(&segments, reset, 2);
+        shiftLane(&segments, six, 2);
+        // shiftLane(&segments, reset, 2);
+        shiftLane(&segments, five, 2);
+        // shiftLane(&segments, reset, 2);
     }
     
 }
+
+/*
+0 : 0b11000000
+1 : 0b11111001
+6 : 0b10000010
+5: 0b10010010
+ */
