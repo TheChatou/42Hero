@@ -5,6 +5,7 @@
 #include "mario.h"
 #include "sonic.h"
 #include "emb.h"
+#include "felix.h"
 
 volatile    uint16_t    tc0_counter = 0;
 extern volatile Expander exp_leds;
@@ -16,6 +17,8 @@ volatile    uint8_t pushed_right[4] = {0,0,0,0};
 
 volatile    uint16_t    tempo = 0;
 volatile    uint8_t     state = PLAY;
+
+volatile    uint8_t led_logo[4] = {0, 0, 0, 0};
 
 uint8_t compare(volatile uint8_t *a, volatile uint8_t *b)
 {
@@ -153,6 +156,7 @@ void    play_song( const t_part *p)
 
     volatile    uint8_t leds[4] = {0, 0, 0, 0};
     volatile    uint8_t target[4] = {0,0,0,0};
+
     state = PLAY;
     turn_leds_off();
     while(time <= length)
@@ -213,6 +217,15 @@ void    play_song( const t_part *p)
             }
             // set pushed vars
         }
+        // condition to stop te song by pushing all buttons
+        if (button_left[3] && button_right[3] && 
+            button_left[2] && button_right[2] &&
+            button_left[1] && button_right[1] &&
+            button_left[0] && button_right[0])
+        {
+            timers_stop();
+            return;
+        }
     }
     uint8_t final_left = (left_score * 255) / length;
     uint8_t final_right = (right_score * 255) / length;
@@ -225,6 +238,36 @@ void    play_song( const t_part *p)
 
 }
 
+int playing_logo()
+{
+    static uint8_t current_char = 0;
+    static uint32_t timer = 0;
+    
+    measure_buttons();
+
+    // Stop si un bouton est pressé
+    for (uint8_t i = 0; i < 4; i++)
+        if (button_left[i] || button_right[i])
+            return 0;
+
+    if (++timer >= 100000)
+    {
+        timer = 0;
+
+        for (uint8_t row = 0; row < 4; row++)
+        {
+            led_logo[row] = pgm_read_byte(&alphabet[current_char][row]);
+            // led_logo[row] = pgm_read_byte(&alphabet[0][row]);
+        }
+
+        shiftLane(&exp_leds, led_logo, 4);
+        current_char = (current_char + 1) % ALPHABET_SIZE;
+    }
+
+    return 1;
+}
+
+
 //52 PB1 PB0
 
 int main(void)
@@ -236,6 +279,7 @@ int main(void)
     while(1)
     {
         measure_buttons();
+        while (playing_logo());
         if (button_left[0])
         {
             play_song(&tetris);
