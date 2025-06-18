@@ -8,7 +8,7 @@ ARCH = atmega2560
 
 CFLAGS = -mmcu=$(ARCH) -I$(INC_DIR) -DF_CPU=$(FREQ) -O2 -Wall -Wextra -MMD -MP
 
-SRCS_FILES = seven_segment.c
+SRCS_FILES = main.c
 
 BUILD_DIR = .objs/
 SRCS_DIR = ./
