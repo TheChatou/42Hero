@@ -10,18 +10,35 @@
 #include <string.h>
 #include <avr/pgmspace.h>
 
+#define MUSIC_MAX_LEN 1000
+#define ALL 0b11111111
+typedef uint8_t             ui8;
+typedef uint16_t            ui16;
+typedef uint32_t            ui32;
+typedef volatile uint8_t    vui8;
+typedef volatile uint16_t   vui16;
+typedef volatile uint32_t   vui32;
+
 typedef struct t_track
 {
-    uint16_t    *note;
+    uint16_t    note[MUSIC_MAX_LEN];
 }   t_track;
 
 typedef struct
 {
     t_track tracks[4];       // 4 pistes max
-    uint16_t *led;           // LEDs à allumer pour chaque tick
+    uint8_t led[MUSIC_MAX_LEN];           // LEDs à allumer pour chaque tick
     uint16_t tempo;                     // Tempo de la musique
     uint16_t length;                    // Nombre total de ticks
 }   t_part;
+
+typedef enum {
+    UPDATE_SCORE,
+    WAIT,
+    INPUT_AHEAD,
+    PLAY,
+    INPUT_AFTER
+} STATE;
 
 /// TIMER FUNCTIONS // timers.c
 // TIMER 0 8 bits
@@ -48,5 +65,14 @@ void    tc4_compare_match(uint8_t com4A1, uint8_t com4A0, uint8_t com4B1, uint8_
 void    tc5_clock(uint8_t cs52, uint8_t cs51, uint8_t cs50);
 void    tc5_mode(uint8_t wgm53, uint8_t wgm52, uint8_t wgm51, uint8_t wgm50);
 void    tc5_compare_match(uint8_t com5A1, uint8_t com5A0, uint8_t com5B1, uint8_t com5B0);
+
+// MY_LIB_EMBEDDED FUNCTIONS // libebdd.c
+void	clear_n_set(vui8 *port, ui8 bit);
+void	toogle_bit(vui8 *port, ui8 bit);
+void	set_bit(vui8 *port, ui8 bit);
+void	clear_bit(vui8 *port, ui8 bit);
+void    set_or_clear(vui8 *port, ui8 val, ui8 bit);
+ui8     is_bit_set(vui8 *port, ui8 bit);
+void	reset_registre(vui8 *reg);
 
 #endif

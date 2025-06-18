@@ -1,6 +1,36 @@
 #include "parts.h"
+#include "expander.h"
+#include "init.h"
+#include "tetris.h"
 
 volatile    uint16_t    tc0_counter = 0;
+extern volatile Expander exp_leds;
+volatile    uint8_t button_left[4] = {0,0,0,0};
+volatile    uint8_t button_right[4] = {0,0,0,0};
+
+volatile    uint8_t pushed_left[4] = {0,0,0,0};
+volatile    uint8_t pushed_right[4] = {0,0,0,0};
+
+volatile    uint16_t    tempo = 0;
+volatile    uint8_t     state = PLAY;
+
+uint8_t compare(volatile uint8_t *a, volatile uint8_t *b)
+{
+    for (uint8_t i =0; i<4; i++)
+    {
+        if (a[i] != b[i])
+            return 0;
+    }
+    return 1;
+}
+
+inline void    reset(volatile uint8_t   *a)
+{
+    a[0] = 0;
+    a[1] = 0;
+    a[2] = 0;
+    a[3] = 0;
+}
 
 void    timers_stop()
 {
@@ -10,67 +40,7 @@ void    timers_stop()
     TCCR5A = OCR5A = 0;
 }
 
-void    tc0_init()
-{
-    // Configuration de TIMER0 pour la duree des notes
-    tc0_clock(0, 1, 1);                     // Prescaler 64
-    tc0_mode(0, 1, 0);                      // Mode CTC
-    TIMSK0 |= (1 << OCIE0A);                // Activer l'interruption de comparaison
-    OCR0A = 100;                            // Valeur de comparaison pour 1 ms
-}
 
-void    tc1_init()
-{
-    // Configuration de TIMER1 pour le PWM (fréquence de la note)
-    tc1_clock(0, 1, 0);                     // Prescaler 8
-    tc1_mode(1, 1, 1, 0);                   // PWM Fast PWM (ICR1)
-    tc1_compare_match(1, 0, 0, 0);          // Clear OC1A sur Compare Match (niveau bas)
-    DDRB |= (1 << PB5);                     // OC1A (PB5) en sortie
-    ICR1 = 0;                               // Initialiser ICR1 à 0
-    OCR1A = 0;                              // Initialiser OCR1A à 0
-    
-}
-
-void    tc3_init()
-{
-    // Configuration de TIMER3 pour le PWM (fréquence de la note)
-    tc3_clock(0, 1, 0);                     // Prescaler 8
-    tc3_mode(1, 1, 1, 0);                   // PWM Fast PWM (ICR3)
-    tc3_compare_match(1, 0, 0, 0);          // Clear OC3A sur Compare Match
-    DDRE |= (1 << PE3);                     // OC3A (PE3) = D5 en sortie
-    ICR3 = 0;
-    OCR3A = 0;
-}
-
-void    tc4_init()
-{
-    // Configuration de TIMER4 pour le PWM (fréquence de la note)
-    tc4_clock(0, 1, 0);                     // Prescaler 8
-    tc4_mode(1, 1, 1, 0);                   // PWM Fast PWM (ICR4)
-    tc4_compare_match(1, 0, 0, 0);          // Clear OC4A sur Compare Match (niveau bas)
-    DDRH |= (1 << PH3);                     // OC4A (PH3) en sortie
-    ICR4 = 0;                               // Initialiser ICR4 à 0
-    OCR4A = 0;                              // Initialiser OCR4A à 0
-}
-
-void    tc5_init()
-{
-    // Configuration de TIMER5 pour le PWM (fréquence de la note)
-    tc5_clock(0, 1, 0);                     // Prescaler 8
-    tc5_mode(1, 1, 1, 0);                   // PWM Fast PWM (ICR5)
-    tc5_compare_match(1, 0, 0, 0);          // Clear OC5A sur Compare Match
-    DDRL |= (1 << PL3);                     // OC5A (PL3) = D44 en sortie
-    ICR5 = 0;
-    OCR5A = 0;
-}
-
-void    tcs_init()
-{
-    tc1_init();                         //  TC0 pour la durée des notes
-    tc3_init();                         //  TC1 pour la piste 1
-    tc4_init();                         //  TC4 pour la piste 2 et 3
-    tc5_init();                         //  TC5 pour la piste 4
-}
 
 // Fonction pour jouer une note
 void play_note_with_timer(uint16_t note, uint8_t track)
@@ -126,4 +96,123 @@ void    play_tracks(const t_part *music, uint16_t curr_note)
       
     tc0_counter = 0;
     TCNT2 = 0;
+}
+
+ISR(TIMER0_COMPA_vect)
+{
+    tc0_counter++;
+
+    if (tc0_counter == tempo)
+    {
+        tc0_counter = 0;
+        // uart_printstr("Tick - note : ");
+        state = PLAY; // Indiquer que la note est terminée
+    }
+    else if (tc0_counter == (3*tempo / 4)){
+        state = INPUT_AHEAD;
+    }
+    else if (tc0_counter == (tempo / 4)){
+        state = UPDATE_SCORE;
+    }
+}
+
+
+inline  void    measure_buttons()
+{
+    button_left[0] = !(PINC & (1 << PC6));
+    button_left[1] = !(PINC & (1 << PC4));
+    button_left[2] = !(PINC & (1 << PC2));
+    button_left[3] = !(PINC & (1 << PC0));   
+    button_right[0] = !(PINL & (1 << PL6));
+    button_right[1] = !(PINL & (1 << PL4));
+    button_right[2] = !(PINL & (1 << PL2));
+    button_right[3] = !(PINL & (1 << PL0));
+
+}
+
+void    play_song( const t_part *p)
+{
+    const t_part    *music = p;
+    const   uint16_t    length = pgm_read_word(&music->length);
+    volatile uint16_t    time = 0;
+    tempo = pgm_read_word(&music->tempo);
+
+    volatile    uint16_t   left_score = 0;
+    volatile    uint16_t    right_score = 0;
+
+    volatile    uint8_t leds[4] = {ALL, ALL, ALL, ALL};
+    volatile    uint8_t target[4] = {0,0,0,0};
+    state = PLAY;
+    while(time <= length)
+    {
+        measure_buttons();
+        if (state == PLAY)
+        {
+            // save target notes for score
+            target[0] = leds[0] & 1;
+            target[1] = leds[1] & 1;
+            target[2] = leds[2] & 1;
+            target[3] = leds[3] & 1;
+            //play note
+            play_tracks(music, time);
+            // update led
+            uint8_t new_led = pgm_read_byte(&music->led[time]);
+            for (uint8_t i = 0; i < 4; i++)
+            {
+                if (new_led & (1 << i))
+                {
+                    leds[i] = (leds[i] >> 1) | 0b10000000;
+                }
+                else{
+                    leds[i] = leds[i] >> 1;
+                }
+            }
+            shiftLane(&exp_leds, leds, 4);
+            time++;
+            state = INPUT_AFTER;
+        }
+        else if (state == UPDATE_SCORE)
+        {
+            // comapre to the target, reset the pushed vars and update score
+            left_score += compare(target, pushed_left);
+            right_score += compare(target, pushed_right);
+            reset(pushed_left);
+            reset(pushed_right);
+            state = WAIT;
+        }
+        if (state > WAIT)
+        {
+            // we take into account a button pushed
+            for (uint8_t i = 0; i < 4; i++)
+            {
+                pushed_left[i] |= button_left[i];
+                pushed_right[i] |= button_right[i];
+            }
+            // set pushed vars
+        }
+    }
+
+
+
+}
+
+//52 PB1 PB0
+
+int main(void)
+{
+    sei();
+    init();
+    turn_leds_off();
+    turn_leds_on();
+    while(1)
+    {
+        measure_buttons();
+        if (button_left[0])
+        {
+            play_song(&tetris);
+            turn_leds_off();
+            turn_leds_on();
+        }
+        _delay_ms(400);
+    }
 }
