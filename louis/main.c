@@ -41,6 +41,8 @@ void timer_set_up()
 }
 
 
+
+
 void    shiftLane(uint8_t *lane, uint8_t size)
 {
     PORTB &= ~(1 << RCLCK);

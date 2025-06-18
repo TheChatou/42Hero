@@ -1,0 +1,11 @@
+#ifndef PINS_H
+#define PINS_H
+
+#define BUTTON_LEFT_BLUE PC6
+#define BUTTON_LEFT_YELLOW PC4
+#define BUTTON_LEFT_GREEN PC2
+#define BUTTON_LEFT_RED PC0
+
+
+
+#endif
