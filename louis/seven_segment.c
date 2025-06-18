@@ -63,7 +63,7 @@ int main()
     volatile uint8_t leds[4] = {off, off, off, off};
     volatile uint8_t    buttons_left[4] = {1,1,1,1};
     volatile uint8_t    buttons_right[4] = {1,1,1,1};
-    shiftLane(&segments, leds_off, 4);
+    shiftLane(&segments, leds_on, 4);
     uint8_t idx = 0;
     _delay_ms(2000);
     while(1)

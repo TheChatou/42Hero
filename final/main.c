@@ -2,6 +2,9 @@
 #include "expander.h"
 #include "init.h"
 #include "tetris.h"
+#include "mario.h"
+#include "sonic.h"
+#include "emb.h"
 
 volatile    uint16_t    tc0_counter = 0;
 extern volatile Expander exp_leds;
@@ -16,12 +19,16 @@ volatile    uint8_t     state = PLAY;
 
 uint8_t compare(volatile uint8_t *a, volatile uint8_t *b)
 {
+    uint8_t light = 0;
     for (uint8_t i =0; i<4; i++)
     {
         if (a[i] != b[i])
             return 0;
+        if (a[i] > 0)
+            light = 1;
+
     }
-    return 1;
+    return (1 + light);
 }
 
 inline void    reset(volatile uint8_t   *a)
@@ -111,8 +118,12 @@ ISR(TIMER0_COMPA_vect)
     else if (tc0_counter == (3*tempo / 4)){
         state = INPUT_AHEAD;
     }
-    else if (tc0_counter == (tempo / 4)){
+    else if (tc0_counter == (tempo / 6)){
         state = UPDATE_SCORE;
+    }
+    else if (tc0_counter == (tempo / 2))
+    {
+        PORTB &= ~( (1 << VALID_LEFT) | (1 << VALID_RIGHT));
     }
 }
 
@@ -140,9 +151,10 @@ void    play_song( const t_part *p)
     volatile    uint16_t   left_score = 0;
     volatile    uint16_t    right_score = 0;
 
-    volatile    uint8_t leds[4] = {ALL, ALL, ALL, ALL};
+    volatile    uint8_t leds[4] = {0, 0, 0, 0};
     volatile    uint8_t target[4] = {0,0,0,0};
     state = PLAY;
+    turn_leds_off();
     while(time <= length)
     {
         measure_buttons();
@@ -173,12 +185,23 @@ void    play_song( const t_part *p)
         }
         else if (state == UPDATE_SCORE)
         {
-            // comapre to the target, reset the pushed vars and update score
-            left_score += compare(target, pushed_left);
-            right_score += compare(target, pushed_right);
+            uint8_t left_delta = compare(target, pushed_left);
+            uint8_t right_delta = compare(target, pushed_right);
+            if (left_delta == 2)
+            {
+                PORTB |= 1 << VALID_LEFT;
+            }
+            if (right_delta == 2)
+            {
+                PORTB |= 1 << VALID_RIGHT;
+            }
+            if (left_delta > 0)
+                left_score += 1;
+            if (right_delta > 0)
+                right_score += 1;
+            state = WAIT;
             reset(pushed_left);
             reset(pushed_right);
-            state = WAIT;
         }
         if (state > WAIT)
         {
@@ -191,6 +214,12 @@ void    play_song( const t_part *p)
             // set pushed vars
         }
     }
+    uint8_t final_left = (left_score * 255) / length;
+    uint8_t final_right = (right_score * 255) / length;
+    uint8_t score_display[4] = {final_left, 0, 0, final_right};
+    shiftLane(&exp_leds, score_display, 4);
+    _delay_ms(10000);
+    
 
 
 
@@ -213,6 +242,27 @@ int main(void)
             turn_leds_off();
             turn_leds_on();
         }
-        _delay_ms(400);
+        else if (button_left[1])
+        {
+            play_song(&mario);
+            turn_leds_off();
+            turn_leds_on();
+        }
+        else if (button_left[2])
+        {
+            play_song(&sonic);
+            turn_leds_off();
+            turn_leds_on();
+        }
+        
+        _delay_ms(500);
     }
 }
+
+
+/* 
+choix des chansons 2 players + correct
+
+255 length
+    score
+ */

@@ -4,6 +4,9 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+#define VALID_LEFT PB3
+#define VALID_RIGHT PB2
+
 void    init();
 void    tcs_init();
 

@@ -81,6 +81,10 @@ void    init()
     PORTC |= 0b01010101; //buttons
     PORTL |= 0b01010101; // buttons
 
+    DDRB |= 1 << PB2; //left
+    DDRB |= 1 << PB3; //right
+
+
     tc0_init();
     tc1_init();
     tc3_init();
