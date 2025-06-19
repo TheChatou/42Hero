@@ -37,7 +37,8 @@ typedef enum {
     WAIT,
     INPUT_AHEAD,
     PLAY,
-    INPUT_AFTER
+    INPUT_AFTER,
+    IDLE
 } STATE;
 
 /// TIMER FUNCTIONS // timers.c

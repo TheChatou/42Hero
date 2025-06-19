@@ -112,8 +112,9 @@ void    play_tracks(const t_part *music, uint16_t curr_note)
 
 ISR(TIMER0_COMPA_vect)
 {
+    if (state == IDLE)
+        return;
     tc0_counter++;
-
     if (tc0_counter == tempo)
     {
         tc0_counter = 0;
@@ -246,6 +247,8 @@ void    play_song( const t_part *p)
             return;
         }
     }
+    state = IDLE;
+    PORTB &= ~((1 << VALID_LEFT) | (1 << VALID_RIGHT));
     uart_str_code("score left" , left_score, 10);
     uart_str_code("score right", right_score, 10);
     uart_str_code("max score", best, 10);
@@ -254,6 +257,10 @@ void    play_song( const t_part *p)
     uart_str_code("gauge left" , final_left, 10);
     uart_str_code("gaugde right", final_right, 10);
     uint8_t score_display[4] = {final_left, 0, 0, final_right};
+    if (left_score > right_score)
+        PORTB |= 1 << VALID_LEFT;
+    else
+        PORTB |= 1 << VALID_RIGHT;
     shiftLane(&exp_leds, score_display, 4);
     _delay_ms(10000);
     turn_leds_off();
@@ -263,6 +270,7 @@ void    play_song( const t_part *p)
     score_display[3] = as_bit_right;
     shiftLane(&exp_leds, score_display, 4);
     _delay_ms(10000);
+    PORTB &= ~((1 << VALID_LEFT) | (1 << VALID_RIGHT));
 
 
 
