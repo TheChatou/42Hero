@@ -6,14 +6,15 @@
 /*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/21 21:42:22 by chatou            #+#    #+#             */
-/*   Updated: 2025/06/18 14:59:16 by chatou           ###   ########.fr       */
+/*   Updated: 2025/06/18 19:00:05 by chatou           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "head.h"
 #include "tetris.h"
 // #include "tetris_3pistes.h"
-// #include "mario.h"
+#include "mario.h"
+#include "sonic.h"
 // #include "mario2.h"
 // #include "simpsons.h"
 // #include "starwars.h"
@@ -134,7 +135,7 @@ void play_note_with_timer(ui16 note, ui8 track)
 
 }
 
-void    play_tracks(const t_part *music, ui8 curr_note)
+void    play_tracks(const t_part *music, ui16 curr_note)
 {
     tcs_init();
 
@@ -184,8 +185,9 @@ int main(void)
     tcs_init();                         //  TC1, TC3, TC4, TC5 pour les pistes
     sei();                              // Activer les interruptions globales       
 
-    // const t_part *music = &mario;
-    const t_part *music = &tetris;
+    const t_part *music = &mario;
+    // const t_part *music = &sonic;
+    // const t_part *music = &tetris;
     // const t_part *music = &tetris_song;
     // const t_part *music = &starwars;
     // const t_part *music = &simpsons;

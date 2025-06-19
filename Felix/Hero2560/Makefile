@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: fcoullou <fcoullou@student.42.fr>          +#+  +:+       +#+         #
+#    By: chatou <chatou@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/03/03 10:43:44 by fcoullou          #+#    #+#              #
-#    Updated: 2025/04/22 17:11:20 by fcoullou         ###   ########.fr        #
+#    Updated: 2025/06/18 23:10:09 by chatou           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ FORMAT 			= ihex
 #	BAUD : Vitesse de transmission en bauds (bits par seconde).
 BAUD_RATE		= 115200
 #	PORT : Port série sur lequel le programmateur est connecté. (cmd : "ls /dev/ttyUSB*")
-PORT			= /dev/ttyACM0
+PORT			= /dev/tty.usbmodem145401
 
 ################################################################################
 ##	FILES & DIRECTORIES
