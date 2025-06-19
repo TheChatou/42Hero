@@ -6,6 +6,8 @@
 #include "sonic.h"
 #include "emb.h"
 #include "felix.h"
+#include "surprise.h"
+#include "zelda.h"
 
 volatile    uint16_t    tc0_counter = 0;
 extern volatile Expander exp_leds;
@@ -110,8 +112,9 @@ void    play_tracks(const t_part *music, uint16_t curr_note)
 
 ISR(TIMER0_COMPA_vect)
 {
+    if (state == IDLE)
+        return;
     tc0_counter++;
-
     if (tc0_counter == tempo)
     {
         tc0_counter = 0;
@@ -121,7 +124,7 @@ ISR(TIMER0_COMPA_vect)
     else if (tc0_counter == (3*tempo / 4)){
         state = INPUT_AHEAD;
     }
-    else if (tc0_counter == (tempo / 6)){
+    else if (tc0_counter == (tempo / 4)){
         state = UPDATE_SCORE;
     }
     else if (tc0_counter == (tempo / 2))
@@ -144,6 +147,18 @@ inline  void    measure_buttons()
 
 }
 
+uint8_t gauge(uint16_t pct)
+{
+    uint8_t i = pct / 10;
+    uint8_t g = 0;
+    for (uint8_t j = 0; j < i; j++)
+    {
+        g = (g << 1) + 1;
+    }
+    return g;
+
+}
+
 void    play_song( const t_part *p)
 {
     const t_part    *music = p;
@@ -157,22 +172,23 @@ void    play_song( const t_part *p)
     volatile    uint8_t leds[4] = {0, 0, 0, 0};
     volatile    uint8_t target[4] = {0,0,0,0};
 
+    volatile uint16_t   best = 0;
+
     state = PLAY;
     turn_leds_off();
+    _delay_ms(1000);
     while(time <= length)
     {
         measure_buttons();
         if (state == PLAY)
         {
             // save target notes for score
-            target[0] = leds[0] & 1;
-            target[1] = leds[1] & 1;
-            target[2] = leds[2] & 1;
-            target[3] = leds[3] & 1;
             //play note
             play_tracks(music, time);
             // update led
             uint8_t new_led = pgm_read_byte(&music->led[time]);
+            if (time % 4 != 0)
+                new_led = 0;
             for (uint8_t i = 0; i < 4; i++)
             {
                 if (new_led & (1 << i))
@@ -184,6 +200,10 @@ void    play_song( const t_part *p)
                 }
             }
             shiftLane(&exp_leds, leds, 4);
+            target[0] = leds[0] & 1;
+            target[1] = leds[1] & 1;
+            target[2] = leds[2] & 1;
+            target[3] = leds[3] & 1;
             time++;
             state = INPUT_AFTER;
         }
@@ -194,15 +214,15 @@ void    play_song( const t_part *p)
             if (left_delta == 2)
             {
                 PORTB |= 1 << VALID_LEFT;
+                left_score += 1;
             }
             if (right_delta == 2)
             {
                 PORTB |= 1 << VALID_RIGHT;
-            }
-            if (left_delta > 0)
-                left_score += 1;
-            if (right_delta > 0)
                 right_score += 1;
+            }
+            if (target[0] | target[1] | target[2] | target[3])
+                best += 1;
             state = WAIT;
             reset(pushed_left);
             reset(pushed_right);
@@ -227,12 +247,30 @@ void    play_song( const t_part *p)
             return;
         }
     }
-    uint8_t final_left = (left_score * 255) / length;
-    uint8_t final_right = (right_score * 255) / length;
+    state = IDLE;
+    PORTB &= ~((1 << VALID_LEFT) | (1 << VALID_RIGHT));
+    uart_str_code("score left" , left_score, 10);
+    uart_str_code("score right", right_score, 10);
+    uart_str_code("max score", best, 10);
+    uint8_t final_left = gauge((left_score * 100) / (best));
+    uint8_t final_right = gauge((right_score*100) / (best));
+    uart_str_code("gauge left" , final_left, 10);
+    uart_str_code("gaugde right", final_right, 10);
     uint8_t score_display[4] = {final_left, 0, 0, final_right};
+    if (left_score > right_score)
+        PORTB |= 1 << VALID_LEFT;
+    else
+        PORTB |= 1 << VALID_RIGHT;
     shiftLane(&exp_leds, score_display, 4);
     _delay_ms(10000);
-    
+    turn_leds_off();
+    uint8_t as_bit_left = (left_score*255)/best;
+    uint8_t as_bit_right = (right_score*255)/best;
+    score_display[0] = as_bit_left;
+    score_display[3] = as_bit_right;
+    shiftLane(&exp_leds, score_display, 4);
+    _delay_ms(10000);
+    PORTB &= ~((1 << VALID_LEFT) | (1 << VALID_RIGHT));
 
 
 
@@ -274,39 +312,40 @@ int main(void)
 {
     sei();
     init();
+    uart_init(0);
     turn_leds_off();
     turn_leds_on();
     while(1)
     {
         measure_buttons();
         while (playing_logo());
-        if (button_left[0])
+        if (button_left[3] && button_right[3])
         {
             play_song(&tetris);
             turn_leds_off();
             turn_leds_on();
         }
-        else if (button_left[1])
+        else if (button_left[0] && button_right[0])
         {
             play_song(&mario);
             turn_leds_off();
             turn_leds_on();
         }
-        else if (button_left[2])
+        else if (button_left[1] && button_right[1])
         {
             play_song(&sonic);
             turn_leds_off();
             turn_leds_on();
         }
+        else if (button_left[2] && button_right[2])
+        {
+            play_song(&zelda);
+            turn_leds_off();
+            turn_leds_on();
+        }
         
-        _delay_ms(500);
+        _delay_ms(300);
     }
 }
 
 
-/* 
-choix des chansons 2 players + correct
-
-255 length
-    score
- */
