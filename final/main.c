@@ -187,8 +187,13 @@ void    play_song( const t_part *p)
             play_tracks(music, time);
             // update led
             uint8_t new_led = pgm_read_byte(&music->led[time]);
-            if (time % 4 != 0)
+            uint16_t diff[2];
+            diff[0] = pgm_read_word(&music->diff[0]);
+            diff[1] = pgm_read_word(&music->diff[1]);
+    
+            if ((time % diff[0]) != diff[1])
                 new_led = 0;
+
             for (uint8_t i = 0; i < 4; i++)
             {
                 if (new_led & (1 << i))
@@ -262,7 +267,7 @@ void    play_song( const t_part *p)
     else
         PORTB |= 1 << VALID_RIGHT;
     shiftLane(&exp_leds, score_display, 4);
-    _delay_ms(10000);
+    _delay_ms(5000);
     turn_leds_off();
     uint8_t as_bit_left = (left_score*255)/best;
     uint8_t as_bit_right = (right_score*255)/best;
@@ -288,18 +293,18 @@ int playing_logo()
         if (button_left[i] || button_right[i])
             return 0;
 
-    if (++timer >= 100000)
+    if (++timer >= 40000)
     {
         timer = 0;
 
         for (uint8_t row = 0; row < 4; row++)
         {
-            led_logo[row] = pgm_read_byte(&alphabet[current_char][row]);
+            led_logo[row] = pgm_read_byte(&logo_hero[current_char][row]);
             // led_logo[row] = pgm_read_byte(&alphabet[0][row]);
         }
 
         shiftLane(&exp_leds, led_logo, 4);
-        current_char = (current_char + 1) % ALPHABET_SIZE;
+        current_char = (current_char + 1) % LOGO_SIZE;
     }
 
     return 1;

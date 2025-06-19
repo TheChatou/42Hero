@@ -30,6 +30,7 @@ typedef struct
     uint8_t led[MUSIC_MAX_LEN];           // LEDs à allumer pour chaque tick
     uint16_t tempo;                     // Tempo de la musique
     uint16_t length;                    // Nombre total de ticks
+    uint16_t diff[2];                      // difficulte
 }   t_part;
 
 typedef enum {
