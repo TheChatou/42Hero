@@ -45,7 +45,7 @@ uart: hex flash
 
 #port ?? https://avrdudes.github.io/avrdude/8.0/avrdude.pdf
 flash: $(NAME)
-	avrdude -v -cwiring -b115200 -pm2560 -P /dev/tty.usbmodem145301 -D -U flash:w:$<:i
+	avrdude -v -cwiring -b115200 -pm2560 -P /dev/ttyACM0 -D -U flash:w:$<:i
 
 clean:
 	rm -rf $(NAME) $(ELF_NAME) $(BUILD_DIR)

@@ -8,6 +8,8 @@
 #include "felix.h"
 #include "surprise.h"
 #include "zelda.h"
+#include "tetris_test.h"
+#include "mario_test.h"
 
 volatile    uint16_t    tc0_counter = 0;
 extern volatile Expander exp_leds;
@@ -326,13 +328,13 @@ int main(void)
         while (playing_logo());
         if (button_left[3] && button_right[3])
         {
-            play_song(&tetris);
+            play_song(&tetris_test);
             turn_leds_off();
             turn_leds_on();
         }
         else if (button_left[0] && button_right[0])
         {
-            play_song(&mario);
+            play_song(&mario_test);
             turn_leds_off();
             turn_leds_on();
         }
