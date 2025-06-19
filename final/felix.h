@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   felix.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: chatou <chatou@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lmahe <lmahe@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/18 23:17:45 by chatou            #+#    #+#             */
-/*   Updated: 2025/06/19 00:37:16 by chatou           ###   ########.fr       */
+/*   Updated: 2025/06/19 14:52:00 by lmahe            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 #include <avr/pgmspace.h>
 
-const uint16_t alphabet[][4] PROGMEM = {
+const uint8_t alphabet[][4] PROGMEM = {
     // Espace
     {
         0b00000000,
@@ -78,5 +78,6 @@ const uint16_t alphabet[][4] PROGMEM = {
 
 // Nombre total de caractères définis (utile pour un modulo)
 # define ALPHABET_SIZE (sizeof(alphabet) / sizeof(alphabet[0]))
+
 
 #endif
