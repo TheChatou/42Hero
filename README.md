@@ -195,16 +195,40 @@ C’est **savoir quoi sacrifier pour livrer quelque chose qui marche**.
 
 ---
 
-## Ce que montre ce projet
+## Collaborateurs
 
-42Hero illustre :
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/LouisMahe"><strong>LouisMahe</strong></a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Geouf91"><strong>Geouf91</strong></a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/LouisMahe">
+        <img src="https://github.com/LouisMahe.png?size=140" width="140" />
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/Geouf91">
+        <img src="https://github.com/Geouf91.png?size=140" width="140" />
+      </a>
+    </td>
+  </tr>
+</table>
 
-- la conception d’une **expérience sans écran**
-- la gestion du **temps réel** sous contraintes matérielles
-- le lien direct entre **game design, UX et technique**
-- la capacité à **livrer un produit stable**, en public, avec une vraie deadline
+<p align="center">
+  <img src="docs/42Hero/logo42chips.png" alt="42Chips - LabElec" width="140"/>
+</p>
+
+<p align="center">
+  <em>
+    Merci au LabElec (42Chips) et à toutes celles et ceux qui ont soutenu,
+    encouragé et rendu ce projet possible.
+  </em>
+</p>
 
 ---
-
-> Ce README est là pour montrer **la portée réelle du projet**,  
-> les choix techniques, les compromis, et pourquoi **chaque décision impacte directement l’expérience de jeu**.
