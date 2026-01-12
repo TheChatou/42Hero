@@ -1,4 +1,0 @@
-(sym_lib_table
-  (version 7)
-  (lib (name "42_hero_lib")(type "KiCad")(uri "${KIPRJMOD}/42_hero_lib.kicad_sym")(options "")(descr ""))
-)
