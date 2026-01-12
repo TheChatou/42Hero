@@ -167,9 +167,7 @@ tout doit **tenir**, **fonctionner**, et **rester stable**.
 ## Deadline & arbitrages — Livrer sous contrainte
 
 <p align="center">
-  <a href="docs/42Hero/Inauguration42Up.mov">
-    <img src="docs/42Hero/Leds.JPG" width="900">
-  </a>
+  <img src="docs/42Hero/Leds.JPG" width="900">
   <br>
   <em>Le payoff : du gameplay stable en conditions réelles.</em>
 </p>
