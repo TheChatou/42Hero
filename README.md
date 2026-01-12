@@ -168,7 +168,7 @@ tout doit **tenir**, **fonctionner**, et **rester stable**.
 
 <p align="center">
   <a href="docs/42Hero/Inauguration42Up.mov">
-    <img src="docs/42Hero/prevStrip.png" width="900">
+    <img src="docs/42Hero/Leds.JPG" width="900">
   </a>
   <br>
   <em>Le payoff : du gameplay stable en conditions réelles.</em>
