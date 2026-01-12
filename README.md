@@ -1,16 +1,52 @@
 # 42Hero  
 *Borne d’arcade rythmique embarquée — jeu physique, musique 8-bit, fabrication réelle.*
+<p align="center">
+  <img src="docs/42Hero/prevStrip.png" width="900">
+</p>
+---
+
+## 42Hero ?
+
+42Hero est né au sein du **LabElec (42Chips)**, à l’occasion de la grande soirée d’inauguration du nouveau campus **42 Paris – 42Up**.
+
+Lors d’une réunion du Lab, plusieurs idées de projets sont évoquées.  
+Je n’ai, en théorie, pas le temps de m’engager sur un projet hors cursus.  
+Mais cette idée-là reste sans volontaire.
+
+Je lève la main.  
+Puis, dans la semaine, deux camarades me rejoignent. Le projet est lancé.
+
+L’idée est simple :  
+prendre l’ADN de **Guitar Hero** et l’adapter à un **format arcade physique**, sans écran.
+
+42Hero est une **mini-borne d’arcade rythmique deux joueurs**, conçue pour une seule chose :  
+être **jouable immédiatement**, sans explication, sans friction.
+
+- jouable en quelques secondes  
+- lisible sans tutoriel  
+- robuste face à un vrai public  
+- amusante à jouer *et* à regarder  
+
+La boucle de jeu est volontairement minimale :
+
+> **appuyer au bon moment → voir et entendre immédiatement le résultat**
+
+Aucune interface graphique, aucun menu complexe :  
+tout passe par le **son**, les **LEDs** et le **rythme**.
+
+Le projet met l’accent sur l’**expérience utilisateur physique**, la synchronisation temps réel et la fiabilité — pas sur une complexité logicielle décorative.
 
 ---
 
 ## Mon rôle & implications techniques
 
-42Hero est un **projet embarqué de l’École 42**, réalisé en équipe de trois pour l’inauguration de **42Up** (nouveau bâtiment du campus 42 Paris).
+42Hero est un **projet embarqué de l’École 42**, réalisé en équipe de trois, avec une contrainte simple et brutale :  
+**une deadline réelle, du public, et zéro droit à l’erreur visible**.
 
-Je me suis occupé d’une **grande partie de la direction technique et de l’expérience de jeu**, avec un objectif clair :  
-**livrer une borne jouable immédiatement**, robuste, lisible, et compréhensible sans explication — pas un prototype fragile “qui marche chez moi”.
+J’ai assuré une **grande partie de la direction technique et de l’expérience de jeu**, avec un objectif clair :  
+**livrer une borne stable, lisible et fun**, pas un prototype “qui marche chez moi”.
 
-Mon implication couvre :
+Mon rôle a couvert :
 
 - **Direction de conception de la borne** (forme, ergonomie, lisibilité)
 - **Logique centrale de gameplay** (states, scoring, timing)
@@ -18,28 +54,11 @@ Mon implication couvre :
 - **UX physique** : boutons, feedback LEDs, rythme, compréhension instantanée
 - **Fabrication & intégration** : itérations, contraintes matérielles, tests réels
 
+Ce projet a impliqué un **investissement massif sur une période courte**, au prix d’une quasi mise en pause de mon cursus commun — choix discutable, mais formateur.
+
 En résumé :  
-du **frontend**, mais sans écran — avec des fils, de la soudure, et une deadline très concrète.
-
----
-
-## À quoi sert 42Hero ?
-
-42Hero est une **mini-borne d’arcade rythmique deux joueurs**, pensée pour être :
-
-- jouable en quelques secondes
-- lisible sans tutoriel
-- robuste face à un vrai public
-- amusante à jouer *et* à regarder
-
-La boucle de jeu est volontairement simple :
-
-> **appuyer au bon moment → voir et entendre immédiatement le résultat**
-
-Aucune interface graphique, aucun menu complexe :  
-tout passe par le **son**, les **LEDs** et le **rythme**.
-
-Le projet met l’accent sur l’**expérience utilisateur physique**, la synchronisation temps réel et la fiabilité, plutôt que sur une complexité logicielle artificielle.
+du **frontend**, sans écran, avec des fils, de la soudure…  
+et une deadline qui ne négociait pas.
 
 ---
 
